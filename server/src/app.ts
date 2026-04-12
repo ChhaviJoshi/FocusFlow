@@ -21,6 +21,9 @@ import integrationsRoutes from './routes/integrations.routes.js';
 export function createApp() {
   const app = express();
 
+  // Trust first proxy (Nginx, Cloud Run, etc.) so req.ip / req.secure are correct
+  app.set('trust proxy', 1);
+
   // ---- Security Middleware ----
   app.use(helmet({
     // Disable CSP in dev since Vite injects inline scripts

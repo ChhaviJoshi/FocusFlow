@@ -34,15 +34,13 @@ export async function createTasksFromAnalysis(
   const placeholders: string[] = [];
 
   tasks.forEach((task, i) => {
-    const offset = i * 5;
-    placeholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5})`);
-    values.push(userId, analysisId, task.originalItemId, task.title, task.urgencyScore);
+    const offset = i * 6;
+    placeholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6})`);
+    values.push(userId, analysisId, task.originalItemId, task.title, task.urgencyScore, task.importanceScore);
   });
 
-  // Note: importance_score is not in the multi-row insert for simplicity
-  // Using individual inserts for full column support
   const result = await pool.query<DbTask>(
-    `INSERT INTO tasks (user_id, analysis_id, original_item_id, title, urgency_score)
+    `INSERT INTO tasks (user_id, analysis_id, original_item_id, title, urgency_score, importance_score)
      VALUES ${placeholders.join(', ')}
      RETURNING *`,
     values

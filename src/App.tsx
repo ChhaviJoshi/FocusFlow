@@ -36,12 +36,6 @@ const App: React.FC = () => {
       setUser(data.user);
       setIntegrations(data.integrations);
 
-      // Google is always connected after OAuth login.
-      // Check if Slack or Jira need setup.
-      const hasNonGoogleIntegrations = data.integrations.some(
-        (i) => i.provider !== 'google' && i.connected
-      );
-
       // Go straight to dashboard — user can configure integrations from there
       setStep('DASHBOARD');
     } catch {

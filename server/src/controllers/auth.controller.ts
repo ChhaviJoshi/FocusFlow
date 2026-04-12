@@ -109,7 +109,14 @@ export async function logout(req: Request, res: Response): Promise<void> {
       res.status(500).json({ error: 'Failed to logout' });
       return;
     }
-    res.clearCookie('focusflow.sid');
+    // Clear the session cookie with the same options used in session.ts
+    // so the browser reliably removes it across all deployment environments
+    res.clearCookie('focusflow.sid', {
+      httpOnly: true,
+      secure: env.isProd,
+      sameSite: 'lax',
+      path: '/',
+    });
     res.json({ success: true });
   });
 }
