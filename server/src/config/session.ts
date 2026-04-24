@@ -1,7 +1,22 @@
-import session from 'express-session';
-import RedisStore from 'connect-redis';
-import { redisClient } from './redis.js';
-import { env } from './env.js';
+import session from "express-session";
+import RedisStore from "connect-redis";
+import { redisClient } from "./redis.js";
+import { env } from "./env.js";
+
+function isNgrokUrl(url?: string): boolean {
+  return typeof url === "string" && /ngrok/i.test(url);
+}
+
+// When testing OAuth via ngrok, callback requests are cross-site. Cookies must
+// be SameSite=None;Secure to survive provider -> ngrok redirect.
+const useCrossSiteCookie =
+  isNgrokUrl(env.frontendUrl) ||
+  isNgrokUrl(env.googleCallbackUrl) ||
+  isNgrokUrl(env.slackRedirectUri) ||
+  isNgrokUrl(env.jiraRedirectUri);
+
+const cookieSecure = true;
+const cookieSameSite: "none" | "lax" = useCrossSiteCookie ? "none" : "lax";
 
 /**
  * Express session middleware backed by Redis.
@@ -19,16 +34,17 @@ import { env } from './env.js';
 export const sessionMiddleware = session({
   store: new RedisStore({
     client: redisClient,
-    prefix: 'focusflow:sess:',
+    prefix: "focusflow:sess:",
   }),
+  proxy: true,
   secret: env.sessionSecret,
-  name: 'focusflow.sid',
+  name: "focusflow.sid",
   resave: false,
   saveUninitialized: false,
   cookie: {
-    httpOnly: true,                       // JS cannot read the cookie — prevents XSS theft
-    secure: env.isProd,                   // HTTPS-only in production; HTTP ok in dev
-    sameSite: 'lax',                      // See comment above
-    maxAge: 7 * 24 * 60 * 60 * 1000,     // 7 days
+    httpOnly: true, // JS cannot read the cookie — prevents XSS theft
+    secure: cookieSecure, // Required for SameSite=None and HTTPS tunnels
+    sameSite: cookieSameSite, // Use None for cross-site OAuth via ngrok
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   },
 });

@@ -7,21 +7,23 @@
  * - Throws on non-2xx responses with the server's error message
  */
 
-const API_BASE = '/api';
-const AUTH_BASE = '/auth';
+const API_BASE = "/api";
+const AUTH_BASE = "/auth";
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
     ...options,
-    credentials: 'include', // Send session cookie with every request
+    credentials: "include", // Send session cookie with every request
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...options.headers,
     },
   });
 
   if (!response.ok) {
-    const body = await response.json().catch(() => ({ error: 'Unknown error' }));
+    const body = await response
+      .json()
+      .catch(() => ({ error: "Unknown error" }));
     throw new Error(body.error || `Request failed: ${response.status}`);
   }
 
@@ -48,7 +50,7 @@ export async function getCurrentUser() {
 
 export async function logout() {
   return request<{ success: boolean }>(`${AUTH_BASE}/logout`, {
-    method: 'POST',
+    method: "POST",
   });
 }
 
@@ -69,6 +71,7 @@ export async function fetchInbox() {
       content: string;
       timestamp: string;
       read: boolean;
+      nativeUrl?: string | null;
     }>;
     sources: Record<string, number>;
     total: number;
@@ -77,15 +80,17 @@ export async function fetchInbox() {
 
 // ---- Analysis ----
 
-export async function analyzeItems(items: Array<{
-  id: string;
-  source: string;
-  sender: string;
-  subject: string;
-  content: string;
-  timestamp: string;
-  read: boolean;
-}>) {
+export async function analyzeItems(
+  items: Array<{
+    id: string;
+    source: string;
+    sender: string;
+    subject: string;
+    content: string;
+    timestamp: string;
+    read: boolean;
+  }>,
+) {
   return request<{
     result: {
       topPriorities: Array<{
@@ -110,42 +115,64 @@ export async function analyzeItems(items: Array<{
         itemId: string;
         category: string;
       }>;
+      lowConfidence: boolean;
     };
     cached: boolean;
   }>(`${API_BASE}/analyze`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({ items }),
   });
 }
 
 // ---- Tasks ----
 
-export async function updateTask(taskId: string, status: 'completed' | 'dismissed') {
+export async function updateTask(
+  taskId: string,
+  status: "completed" | "dismissed",
+) {
   return request<{ task: unknown }>(`${API_BASE}/tasks/${taskId}`, {
-    method: 'PATCH',
+    method: "PATCH",
     body: JSON.stringify({ status }),
   });
 }
 
+export async function updateTaskByOriginalItemId(
+  originalItemId: string,
+  status: "completed" | "dismissed",
+) {
+  return request<{ task: unknown }>(
+    `${API_BASE}/tasks/by-item/${encodeURIComponent(originalItemId)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    },
+  );
+}
+
+export async function getTasks(
+  status?: "pending" | "completed" | "dismissed",
+  limit: number = 200,
+) {
+  const params = new URLSearchParams();
+  params.set("limit", String(limit));
+  if (status) params.set("status", status);
+
+  return request<{
+    tasks: Array<{
+      id: string;
+      original_item_id: string | null;
+      status: "pending" | "completed" | "dismissed";
+      created_at: string;
+      completed_at: string | null;
+    }>;
+  }>(`${API_BASE}/tasks?${params.toString()}`);
+}
+
 // ---- Integrations ----
-
-export async function saveSlackToken(token: string) {
-  return request<{ success: boolean }>(`${API_BASE}/integrations/slack`, {
-    method: 'POST',
-    body: JSON.stringify({ token }),
-  });
-}
-
-export async function saveJiraCredentials(domain: string, email: string, apiToken: string) {
-  return request<{ success: boolean }>(`${API_BASE}/integrations/jira`, {
-    method: 'POST',
-    body: JSON.stringify({ domain, email, apiToken }),
-  });
-}
 
 export async function disconnectIntegration(provider: string) {
   return request<{ success: boolean }>(`${API_BASE}/integrations/${provider}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 }
 
@@ -158,4 +185,16 @@ export async function getIntegrations() {
       connectedAt: string;
     }>;
   }>(`${API_BASE}/integrations`);
+}
+
+export async function getSlackOAuthAuthUrl() {
+  return request<{ authUrl: string }>(
+    `${API_BASE}/integrations/slack/oauth/start`,
+  );
+}
+
+export async function getJiraOAuthAuthUrl() {
+  return request<{ authUrl: string }>(
+    `${API_BASE}/integrations/jira/oauth/start`,
+  );
 }

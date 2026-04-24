@@ -10,6 +10,8 @@ server/dist
 .env
 .env.local
 *.local
+client_secret*.json
+*.apps.googleusercontent.com.json
 
 # Logs
 logs

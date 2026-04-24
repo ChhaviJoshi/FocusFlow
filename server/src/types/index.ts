@@ -5,10 +5,10 @@
  */
 
 export enum SourceType {
-  EMAIL = 'EMAIL',
-  SLACK = 'SLACK',
-  JIRA = 'JIRA',
-  CALENDAR = 'CALENDAR',
+  EMAIL = "EMAIL",
+  SLACK = "SLACK",
+  JIRA = "JIRA",
+  CALENDAR = "CALENDAR",
 }
 
 export interface InboxItem {
@@ -19,6 +19,7 @@ export interface InboxItem {
   content: string;
   timestamp: string;
   read: boolean;
+  nativeUrl?: string | null;
 }
 
 export interface PrioritizedTask {
@@ -30,10 +31,10 @@ export interface PrioritizedTask {
   importanceScore: number;
   reason: string;
   suggestedAction: string;
-  category: 'Client' | 'Internal' | 'Project' | 'Admin';
+  category: "Client" | "Internal" | "Project" | "Admin";
 }
 
-export type CategoryType = 'Urgent' | 'Important' | 'Routine' | 'Noise';
+export type CategoryType = "Urgent" | "Important" | "Routine" | "Noise";
 
 export interface AnalysisResult {
   topPriorities: PrioritizedTask[];
@@ -48,6 +49,7 @@ export interface AnalysisResult {
     itemId: string;
     category: CategoryType;
   }[];
+  lowConfidence: boolean;
 }
 
 export interface DbUser {
@@ -63,7 +65,7 @@ export interface DbIntegration {
   id: string;
   user_id: string;
   provider: string;
-  access_token: string;   // encrypted
+  access_token: string; // encrypted
   refresh_token: string | null; // encrypted
   metadata: Record<string, unknown>;
   expires_at: Date | null;
@@ -72,7 +74,7 @@ export interface DbIntegration {
 }
 
 // Extend express-session to include our custom session data
-declare module 'express-session' {
+declare module "express-session" {
   interface SessionData {
     userId: string;
     email: string;

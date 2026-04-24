@@ -60,11 +60,12 @@ CREATE TABLE IF NOT EXISTS tasks (
     analysis_id       UUID REFERENCES analyses(id) ON DELETE SET NULL,
     user_id           UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     original_item_id  VARCHAR(255),               -- links back to the source inbox item id
+    native_url        TEXT,                       -- absolute deep-link to source item
     title             VARCHAR(500) NOT NULL,
     status            VARCHAR(20) DEFAULT 'pending'
                       CHECK (status IN ('pending', 'completed', 'dismissed')),
-    urgency_score     INT CHECK (urgency_score BETWEEN 1 AND 10),
-    importance_score  INT CHECK (importance_score BETWEEN 1 AND 10),
+    urgency_score     NUMERIC(4,3) CHECK (urgency_score BETWEEN 0 AND 1),
+    importance_score  NUMERIC(4,3) CHECK (importance_score BETWEEN 0 AND 1),
     completed_at      TIMESTAMPTZ,
     created_at        TIMESTAMPTZ DEFAULT NOW()
 );

@@ -1,9 +1,8 @@
-
 export enum SourceType {
-  EMAIL = 'EMAIL',
-  SLACK = 'SLACK',
-  JIRA = 'JIRA',
-  CALENDAR = 'CALENDAR'
+  EMAIL = "EMAIL",
+  SLACK = "SLACK",
+  JIRA = "JIRA",
+  CALENDAR = "CALENDAR",
 }
 
 export interface InboxItem {
@@ -14,6 +13,7 @@ export interface InboxItem {
   content: string;
   timestamp: string;
   read: boolean;
+  nativeUrl?: string | null;
 }
 
 export interface PrioritizedTask {
@@ -21,14 +21,14 @@ export interface PrioritizedTask {
   originalItemId: string;
   title: string;
   summary: string;
-  urgencyScore: number; // 1-10
-  importanceScore: number; // 1-10
+  urgencyScore: number; // 0-1
+  importanceScore: number; // 0-1
   reason: string;
   suggestedAction: string;
-  category: 'Client' | 'Internal' | 'Project' | 'Admin';
+  category: "Client" | "Internal" | "Project" | "Admin";
 }
 
-export type CategoryType = 'Urgent' | 'Important' | 'Routine' | 'Noise';
+export type CategoryType = "Urgent" | "Important" | "Routine" | "Noise";
 
 export interface AnalysisResult {
   topPriorities: PrioritizedTask[];
@@ -44,6 +44,7 @@ export interface AnalysisResult {
     itemId: string;
     category: CategoryType;
   }[];
+  lowConfidence: boolean;
 }
 
 export interface UserCredentials {

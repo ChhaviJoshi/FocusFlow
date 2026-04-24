@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Zod schema for validating Gemini AI responses.
@@ -11,16 +11,16 @@ const PrioritizedTaskSchema = z.object({
   originalItemId: z.string(),
   title: z.string(),
   summary: z.string(),
-  urgencyScore: z.number().min(1).max(10),
-  importanceScore: z.number().min(1).max(10),
+  urgencyScore: z.number().min(0).max(1),
+  importanceScore: z.number().min(0).max(1),
   reason: z.string(),
   suggestedAction: z.string(),
-  category: z.enum(['Client', 'Internal', 'Project', 'Admin']),
+  category: z.enum(["Client", "Internal", "Project", "Admin"]),
 });
 
 const ItemClassificationSchema = z.object({
   itemId: z.string(),
-  category: z.enum(['Urgent', 'Important', 'Routine', 'Noise']),
+  category: z.enum(["Urgent", "Important", "Routine", "Noise"]),
 });
 
 export const AnalysisResultSchema = z.object({
@@ -33,6 +33,7 @@ export const AnalysisResultSchema = z.object({
     noise: z.number().min(0),
   }),
   itemClassifications: z.array(ItemClassificationSchema),
+  lowConfidence: z.boolean().default(false),
 });
 
 export type ValidatedAnalysisResult = z.infer<typeof AnalysisResultSchema>;

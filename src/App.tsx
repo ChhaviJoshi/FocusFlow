@@ -1,12 +1,13 @@
+import React, { useEffect, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Dashboard } from "./components/Dashboard";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { IntegrationsHub } from "./components/IntegrationsHub";
+import { LandingPage } from "./components/LandingPage";
+import { getCurrentUser } from "./services/api";
 
-import React, { useState, useEffect } from 'react';
-import { LoginScreen } from './components/LoginScreen';
-import { PermissionScreen } from './components/PermissionScreen';
-import { Dashboard } from './components/Dashboard';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { getCurrentUser } from './services/api';
-
-type AppStep = 'LOADING' | 'LOGIN' | 'PERMISSIONS' | 'DASHBOARD';
+type ThemeMode = "light" | "dark";
+const THEME_STORAGE_KEY = "focusflow-theme";
 
 interface AuthUser {
   id: string;
@@ -15,69 +16,106 @@ interface AuthUser {
   avatarUrl: string | null;
 }
 
-interface ConnectedIntegration {
-  provider: string;
-  connected: boolean;
-}
-
 const App: React.FC = () => {
-  const [step, setStep] = useState<AppStep>('LOADING');
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [integrations, setIntegrations] = useState<ConnectedIntegration[]>([]);
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    return savedTheme === "light" ? "light" : "dark";
+  });
+  const [integrations, setIntegrations] = useState<
+    Array<{ provider: string; connected: boolean }>
+  >([]);
 
-  // On mount, check if user is already authenticated via session cookie
   useEffect(() => {
-    checkAuthStatus();
+    void checkAuthStatus();
   }, []);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("dark", theme === "dark");
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((current) => (current === "dark" ? "light" : "dark"));
+  };
+
   const checkAuthStatus = async () => {
+    setLoading(true);
+
     try {
       const data = await getCurrentUser();
       setUser(data.user);
       setIntegrations(data.integrations);
-
-      // Go straight to dashboard — user can configure integrations from there
-      setStep('DASHBOARD');
     } catch {
-      // Not authenticated — show login
-      setStep('LOGIN');
+      setUser(null);
+      setIntegrations([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleLoginSuccess = () => {
-    // After Google OAuth redirect, the page reloads.
-    // checkAuthStatus will run again on mount and pick up the session.
-    checkAuthStatus();
-  };
-
-  const handlePermissionContinue = () => {
-    setStep('DASHBOARD');
-  };
-
-  if (step === 'LOADING') {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F9FAFB] dark:bg-[#0F172A] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-400 text-sm">Loading FocusFlow...</p>
+          <div className="w-10 h-10 border-2 border-[#1D4ED8] dark:border-[#3B82F6] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[#111827] dark:text-[#FFFFFF] text-sm">
+            Loading FocusFlow...
+          </p>
         </div>
       </div>
     );
   }
 
+  const RequireAuth: React.FC<{ children: React.ReactNode }> = ({
+    children,
+  }) => {
+    if (!user) {
+      return <Navigate to="/" replace />;
+    }
+
+    return <>{children}</>;
+  };
+
   return (
     <ErrorBoundary>
-      {step === 'LOGIN' && (
-        <LoginScreen onLogin={handleLoginSuccess} />
-      )}
-      
-      {step === 'PERMISSIONS' && (
-        <PermissionScreen onContinue={handlePermissionContinue} />
-      )}
-
-      {step === 'DASHBOARD' && user && (
-        <Dashboard userName={user.name} integrations={integrations} />
-      )}
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              user ? <Navigate to="/dashboard" replace /> : <LandingPage />
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <RequireAuth>
+                <Dashboard
+                  userName={user?.name || ""}
+                  integrations={integrations}
+                  theme={theme}
+                  onToggleTheme={toggleTheme}
+                />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/settings/integrations"
+            element={
+              <RequireAuth>
+                <IntegrationsHub userName={user?.name || ""} />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="*"
+            element={<Navigate to={user ? "/dashboard" : "/"} replace />}
+          />
+        </Routes>
+      </BrowserRouter>
     </ErrorBoundary>
   );
 };
