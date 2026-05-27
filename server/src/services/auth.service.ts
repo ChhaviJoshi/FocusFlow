@@ -130,12 +130,16 @@ export async function upsertUserAndGoogleIntegration(
     await client.query("BEGIN");
 
     const userResult = await client.query<DbUser>(
-      `INSERT INTO users (email, name, avatar_url)
-       VALUES ($1, $2, $3)
+      `INSERT INTO users (email, name, display_name, avatar_url, secondary_emails, linked_accounts)
+       VALUES ($1, $2, $3, $4, '[]'::jsonb, '{}'::jsonb)
        ON CONFLICT (email)
-       DO UPDATE SET name = $2, avatar_url = $3, updated_at = NOW()
+       DO UPDATE SET
+         name = $2,
+         display_name = COALESCE(users.display_name, $3),
+         avatar_url = $4,
+         updated_at = NOW()
        RETURNING *`,
-      [profile.email, profile.name, profile.avatarUrl],
+      [profile.email, profile.name, profile.name, profile.avatarUrl],
     );
 
     const user = userResult.rows[0];

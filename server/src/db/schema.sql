@@ -12,7 +12,11 @@ CREATE TABLE IF NOT EXISTS users (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email         VARCHAR(255) UNIQUE NOT NULL,
     name          VARCHAR(255) NOT NULL,
+    display_name  VARCHAR(255),
+    secondary_emails JSONB DEFAULT '[]'::jsonb,
+    linked_accounts  JSONB DEFAULT '{}'::jsonb,
     avatar_url    TEXT,
+    password_hash TEXT,
     created_at    TIMESTAMPTZ DEFAULT NOW(),
     updated_at    TIMESTAMPTZ DEFAULT NOW()
 );
@@ -66,9 +70,38 @@ CREATE TABLE IF NOT EXISTS tasks (
                       CHECK (status IN ('pending', 'completed', 'dismissed')),
     urgency_score     NUMERIC(4,3) CHECK (urgency_score BETWEEN 0 AND 1),
     importance_score  NUMERIC(4,3) CHECK (importance_score BETWEEN 0 AND 1),
+    due_at            TIMESTAMPTZ,
     completed_at      TIMESTAMPTZ,
     created_at        TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+
+-- ============================================================================
+-- Password reset tokens
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS password_resets (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash  TEXT NOT NULL,
+    expires_at  TIMESTAMPTZ NOT NULL,
+    used_at     TIMESTAMPTZ,
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_password_resets_user_id ON password_resets(user_id);
+CREATE INDEX IF NOT EXISTS idx_password_resets_token_hash ON password_resets(token_hash);
+
+-- ============================================================================
+-- Backfill for existing databases
+-- ============================================================================
+ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS secondary_emails JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS linked_accounts JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
+
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_at TIMESTAMPTZ;
+
+UPDATE users SET secondary_emails = '[]'::jsonb WHERE secondary_emails IS NULL;
+UPDATE users SET linked_accounts = '{}'::jsonb WHERE linked_accounts IS NULL;

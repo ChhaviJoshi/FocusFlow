@@ -10,6 +10,7 @@ export interface DbTask {
   status: "pending" | "completed" | "dismissed";
   urgency_score: number | null;
   importance_score: number | null;
+  due_at: Date | null;
   completed_at: Date | null;
   created_at: Date;
 }
@@ -141,6 +142,63 @@ export async function listTasks(
      LIMIT $2`,
     [userId, limit],
   );
+  return result.rows;
+}
+
+interface TaskSummaryRow {
+  completed_total: string;
+  pending_total: string;
+  completed_high: string;
+  completed_medium: string;
+  completed_low: string;
+  pending_high: string;
+  pending_medium: string;
+  pending_low: string;
+}
+
+export async function getTaskSummaryBuckets(
+  userId: string,
+  highThreshold: number,
+  mediumThreshold: number,
+): Promise<TaskSummaryRow> {
+  const result = await pool.query<TaskSummaryRow>(
+    `WITH scored AS (
+       SELECT
+         status,
+         (COALESCE(urgency_score, 0) + COALESCE(importance_score, 0)) / 2 AS score
+       FROM tasks
+       WHERE user_id = $1
+         AND status IN ('pending', 'completed')
+     )
+     SELECT
+       COALESCE(SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END), 0) AS completed_total,
+       COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) AS pending_total,
+       COALESCE(SUM(CASE WHEN status = 'completed' AND score >= $2 THEN 1 ELSE 0 END), 0) AS completed_high,
+       COALESCE(SUM(CASE WHEN status = 'completed' AND score >= $3 AND score < $2 THEN 1 ELSE 0 END), 0) AS completed_medium,
+       COALESCE(SUM(CASE WHEN status = 'completed' AND score < $3 THEN 1 ELSE 0 END), 0) AS completed_low,
+       COALESCE(SUM(CASE WHEN status = 'pending' AND score >= $2 THEN 1 ELSE 0 END), 0) AS pending_high,
+       COALESCE(SUM(CASE WHEN status = 'pending' AND score >= $3 AND score < $2 THEN 1 ELSE 0 END), 0) AS pending_medium,
+       COALESCE(SUM(CASE WHEN status = 'pending' AND score < $3 THEN 1 ELSE 0 END), 0) AS pending_low
+     FROM scored`,
+    [userId, highThreshold, mediumThreshold],
+  );
+
+  return result.rows[0];
+}
+
+export async function listOpenTasksWithDueAt(
+  userId: string,
+): Promise<DbTask[]> {
+  const result = await pool.query<DbTask>(
+    `SELECT *
+     FROM tasks
+     WHERE user_id = $1
+       AND status = 'pending'
+       AND due_at IS NOT NULL
+     ORDER BY due_at ASC`,
+    [userId],
+  );
+
   return result.rows;
 }
 

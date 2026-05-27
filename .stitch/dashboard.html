@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FocusFlow | Priority Dashboard</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "surface-container-high": "#eae8e7",
+                "on-tertiary": "#ffffff",
+                "inverse-surface": "#303030",
+                "tertiary-container": "#412e00",
+                "surface-bright": "#fbf9f8",
+                "on-secondary-fixed-variant": "#005232",
+                "primary-fixed": "#d8e2ff",
+                "inverse-on-surface": "#f2f0f0",
+                "on-secondary-fixed": "#002111",
+                "surface-dim": "#dbd9d9",
+                "on-tertiary-fixed": "#261a00",
+                "on-surface": "#1b1c1c",
+                "outline-variant": "#c4c6d2",
+                "on-surface-variant": "#434750",
+                "on-tertiary-container": "#c39100",
+                "surface-container-low": "#f5f3f3",
+                "secondary-fixed": "#78fbb6",
+                "surface-container-lowest": "#ffffff",
+                "secondary-container": "#75f8b3",
+                "surface-tint": "#3c5d9c",
+                "outline": "#747781",
+                "on-secondary-container": "#007147",
+                "on-error-container": "#93000a",
+                "surface-container-highest": "#e4e2e2",
+                "on-primary-fixed": "#001a42",
+                "on-background": "#1b1c1c",
+                "error": "#ba1a1a",
+                "tertiary-fixed-dim": "#fbbc00",
+                "on-primary-fixed-variant": "#224583",
+                "secondary-fixed-dim": "#59de9b",
+                "on-error": "#ffffff",
+                "primary-container": "#002f6c",
+                "on-primary-container": "#7999dc",
+                "surface-container": "#efeded",
+                "inverse-primary": "#aec6ff",
+                "on-secondary": "#ffffff",
+                "primary": "#001b44",
+                "on-primary": "#ffffff",
+                "error-container": "#ffdad6",
+                "background": "#fbf9f8",
+                "primary-fixed-dim": "#aec6ff",
+                "surface": "#fbf9f8",
+                "tertiary-fixed": "#ffdfa0",
+                "secondary": "#006d43",
+                "on-tertiary-fixed-variant": "#5c4300",
+                "tertiary": "#271a00",
+                "surface-variant": "#e4e2e2"
+              },
+              "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+              },
+              "fontFamily": {
+                "headline": ["Manrope"],
+                "display": ["Manrope"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        /* Custom Donut Chart Segments using Conic Gradient */
+        .donut-chart {
+            background: conic-gradient(
+                #ba1a1a 0% 45%,      /* Urgent (Error) */
+                #001b44 45% 75%,    /* Important (Primary) */
+                #006d43 75% 90%,    /* Routine (Secondary) */
+                #747781 90% 100%    /* Noise (Outline) */
+            );
+        }
+        
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        #sidebar.hidden-sidebar {
+            transform: translateX(-100%);
+        }
+        .main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+        .main-content.sidebar-open {
+            margin-left: 256px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body antialiased">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen bg-[#f5f3f3] dark:bg-[#1b1c1c] w-64 border-r border-[#efeded] dark:border-[#2d2e30] z-[60] flex flex-col hidden-sidebar" id="sidebar">
+<div class="p-6 flex justify-between items-center">
+<div>
+<h1 class="text-lg font-black text-[#001b44] dark:text-[#ffffff]">FocusFlow</h1>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-1 opacity-60">Kinetic Precision</p>
+</div>
+<button class="lg:hidden p-2 text-on-surface-variant" onclick="toggleSidebar()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex-1 px-4 space-y-2 mt-8">
+<button class="w-full flex items-center gap-3 bg-gradient-to-r from-[#001b44] to-[#002f6c] text-white rounded-lg px-4 py-3 shadow-[0_4px_12px_rgba(0,27,68,0.15)] text-xs font-semibold text-left">
+<span class="material-symbols-outlined filled-icon" data-icon="bolt" style="font-variation-settings: 'FILL' 1;">bolt</span>
+            Priority Hub
+        </button>
+<button class="w-full flex items-center gap-3 text-[#434750] dark:text-[#c4c6d2] px-4 py-3 hover:bg-[#e4e2e2] dark:hover:bg-[#2d2e30] rounded-lg transition-all text-xs font-semibold text-left">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+            User Profile
+        </button>
+<button class="w-full flex items-center gap-3 text-[#434750] dark:text-[#c4c6d2] px-4 py-3 hover:bg-[#e4e2e2] dark:hover:bg-[#2d2e30] rounded-lg transition-all text-xs font-semibold text-left">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+            Settings
+        </button>
+</div>
+<div class="p-6 border-t border-surface-container">
+<button class="w-full bg-primary text-on-primary py-3 rounded-xl font-bold text-sm shadow-md hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base" data-icon="add">add</span>
+            New Session
+        </button>
+<div class="mt-6 space-y-2">
+<a class="flex items-center gap-3 text-xs font-semibold text-on-surface-variant hover:text-primary transition-colors px-2 py-1" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="help">help</span>
+                Help
+            </a>
+<a class="flex items-center gap-3 text-xs font-semibold text-on-surface-variant hover:text-error transition-colors px-2 py-1" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="logout">logout</span>
+                Logout
+            </a>
+</div>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="bg-[#fbf9f8] dark:bg-[#1b1c1c] w-full fixed top-0 z-50">
+<nav class="flex justify-between items-center w-full px-6 py-4 max-w-[1440px] mx-auto">
+<div class="flex items-center gap-6">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-all" onclick="toggleSidebar()">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<span class="text-xl font-extrabold tracking-tight text-[#001b44] dark:text-[#ffffff]">FocusFlow</span>
+<div class="hidden md:flex gap-6 items-center ml-2">
+<a class="text-[#001b44] dark:text-[#ffffff] border-b-2 border-[#001b44] dark:border-[#d8e2ff] pb-1 font-semibold text-sm transition-colors" href="#">Dashboard</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#434750] dark:text-[#c4c6d2] hover:bg-surface-container rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="refresh">refresh</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-surface-container overflow-hidden">
+<img alt="User profile avatar" class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1otXCcJp5FuY4OragODfLJp_uWQX3YUbwxXXQKL1vgXWJ_qNfblK4sdfIiQV1Il0FS6rKUDkDSWmNBI9KqdKiVqOromaitpKnXaNw803LFX7b_J-mGx06iK_y1HJGIT6WrIx9-LFEglOXD-JjD4yjzX6D1O7WcjvcTugJFjPxffCL2uHmQA68PsZxNbweQQzLuDmwM-akqgqvvp9p8Dfk0GgoKcvNQk_ZWZ6vSsLgblV75JXMQS-gs18QcmmlDiNUHYAEQyZerus"/>
+</div>
+</div>
+</nav>
+</header>
+<main class="pt-24 pb-12 px-6 max-w-[1440px] mx-auto main-content" id="main-container">
+<!-- Welcome Header -->
+<header class="mb-10">
+<h1 class="font-headline text-4xl font-extrabold text-primary tracking-tight">Good Morning, CHHAVI</h1>
+<p class="text-on-surface-variant font-medium mt-2">You have 4 high-priority tasks requiring deep focus today.</p>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
+<!-- Left Column: Task Feed -->
+<section class="space-y-6">
+<!-- Task List -->
+<div class="space-y-4">
+<!-- Task Card 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl group hover:shadow-lg transition-all task-card">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center gap-3">
+<span class="bg-primary text-white h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm">01</span>
+<span class="material-symbols-outlined text-primary opacity-40" data-icon="cloud">cloud</span>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Cloud Migration</span>
+</div>
+<div class="bg-error-container text-on-error-container px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="priority_high">priority_high</span>
+                            URGENCY: 98/100
+                        </div>
+</div>
+<h3 class="font-headline text-2xl font-bold text-primary mb-3">Finalize AWS Instance Orchestration for Q3</h3>
+<div class="bg-surface-container-low p-4 rounded-lg flex items-start gap-3 border-l-4 border-error">
+<span class="material-symbols-outlined text-error" data-icon="warning">warning</span>
+<p class="text-sm text-on-surface-variant leading-relaxed">Infrastructure team is waiting on these parameters to initiate the nightly migration batch. Delay will push the timeline by 48 hours.</p>
+</div>
+<div class="mt-6 flex justify-end">
+<button class="bg-primary text-on-primary px-8 py-2.5 rounded-xl font-bold text-sm hover:scale-95 transition-transform" onclick="completeTask('task1', this)">Done</button>
+</div>
+</div>
+<!-- Task Card 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl group hover:shadow-lg transition-all opacity-90 task-card">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center gap-3">
+<span class="bg-primary text-white h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm">02</span>
+<span class="material-symbols-outlined text-primary opacity-40" data-icon="groups">groups</span>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Hiring Pipeline</span>
+</div>
+<div class="bg-error-container text-on-error-container px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="priority_high">priority_high</span>
+                            URGENCY: 85/100
+                        </div>
+</div>
+<h3 class="font-headline text-2xl font-bold text-primary mb-3">Review Senior Architect Portfolio Submissions</h3>
+<div class="bg-surface-container-low p-4 rounded-lg flex items-start gap-3 border-l-4 border-primary">
+<span class="material-symbols-outlined text-primary" data-icon="info">info</span>
+<p class="text-sm text-on-surface-variant leading-relaxed">Interviews scheduled for tomorrow morning. Need evaluation scores for the top 3 candidates before COB.</p>
+</div>
+<div class="mt-6 flex justify-end">
+<button class="bg-primary text-on-primary px-8 py-2.5 rounded-xl font-bold text-sm hover:scale-95 transition-transform" onclick="completeTask('task2', this)">Done</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Column: Widgets -->
+<aside class="space-y-8">
+<!-- Session Wins Widget -->
+<div class="bg-surface-container-lowest p-6 rounded-xl">
+<div class="flex items-center justify-between mb-6">
+<h4 class="font-headline font-bold text-lg text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-fixed-dim filled-icon" data-icon="trophy" style="font-variation-settings: 'FILL' 1;">trophy</span>
+                        Session Wins
+                    </h4>
+<span class="text-xs font-bold text-secondary" id="session-goal-text">88% DAILY GOAL</span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-end">
+<div>
+<span class="text-3xl font-black text-primary" id="stat-tasks-done">14</span>
+<span class="text-xs font-bold text-on-surface-variant ml-1">Tasks Done</span>
+</div>
+<span class="text-xs font-bold text-on-surface-variant" id="stat-tasks-left">2 Left Today</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[88%]" id="session-progress-bar"></div>
+</div>
+<ul class="pt-4 space-y-3">
+<li class="flex items-center gap-3 text-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-secondary text-lg" data-icon="check_circle">check_circle</span>
+                            Email triage completed (24)
+                        </li>
+<li class="flex items-center gap-3 text-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-secondary text-lg" data-icon="check_circle">check_circle</span>
+                            Weekly sync summary sent
+                        </li>
+</ul>
+</div>
+</div>
+<!-- Workload Balance Widget -->
+<div class="bg-surface-container-lowest p-6 rounded-xl">
+<h4 class="font-headline font-bold text-lg text-primary mb-6">Workload Balance</h4>
+<div class="flex justify-center mb-8">
+<div class="relative h-44 w-44 rounded-full flex items-center justify-center p-3 bg-surface-container-low shadow-inner">
+<div class="donut-chart h-full w-full rounded-full flex items-center justify-center relative">
+<div class="absolute inset-4 bg-surface-container-lowest rounded-full flex flex-col items-center justify-center shadow-sm">
+<span class="text-3xl font-black text-primary leading-none">72%</span>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-1">Capacity</span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<button class="filter-btn flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border-2 border-transparent hover:border-outline-variant transition-all cursor-pointer text-left w-full" onclick="setFilter('URGENT', this)">
+<span class="h-3 w-3 rounded-full bg-error"></span>
+<div class="leading-none">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Urgent</p>
+<p class="font-black text-primary text-base">45%</p>
+</div>
+</button>
+<button class="filter-btn flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border-2 border-transparent hover:border-outline-variant transition-all cursor-pointer text-left w-full" onclick="setFilter('IMPORTANT', this)">
+<span class="h-3 w-3 rounded-full bg-primary"></span>
+<div class="leading-none">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Important</p>
+<p class="font-black text-primary text-base">30%</p>
+</div>
+</button>
+<button class="filter-btn flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border-2 border-transparent hover:border-outline-variant transition-all cursor-pointer text-left w-full" onclick="setFilter('ROUTINE', this)">
+<span class="h-3 w-3 rounded-full bg-secondary"></span>
+<div class="leading-none">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Routine</p>
+<p class="font-black text-primary text-base">15%</p>
+</div>
+</button>
+<button class="filter-btn flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border-2 border-transparent hover:border-outline-variant transition-all cursor-pointer text-left w-full" onclick="setFilter('NOISE', this)">
+<span class="h-3 w-3 rounded-full bg-outline"></span>
+<div class="leading-none">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Noise</p>
+<p class="font-black text-primary text-base">10%</p>
+</div>
+</button>
+</div>
+</div>
+<!-- Incoming Stream Widget -->
+<div class="bg-surface-container-lowest p-6 rounded-xl" id="incoming-stream-card">
+<div class="flex items-center justify-between mb-6">
+<h4 class="font-headline font-bold text-lg text-primary flex items-center gap-2" id="stream-title">
+<span class="material-symbols-outlined text-primary" data-icon="inbox">inbox</span>
+                        Incoming Stream
+                    </h4>
+<div class="flex items-center gap-2">
+<button class="hidden flex items-center gap-1 text-[10px] font-bold text-error uppercase hover:underline" id="clear-filter" onclick="clearFilter()">
+<span class="material-symbols-outlined text-sm">close</span> Clear
+                        </button>
+<span class="h-2 w-2 rounded-full bg-error animate-pulse"></span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-start gap-3 pb-4 border-b border-surface-container-low">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="chat">chat</span>
+<div>
+<p class="text-sm font-bold text-primary">Slack: @Marcus mentioned you</p>
+<p class="text-xs text-on-surface-variant mt-0.5 italic">"Can we check the API keys for the..."</p>
+<span class="inline-block mt-2 px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant text-[10px] font-black uppercase">URGENT</span>
+</div>
+</div>
+<div class="flex items-start gap-3 pb-4 border-b border-surface-container-low">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="mail">mail</span>
+<div>
+<p class="text-sm font-bold text-primary">Jira: Ticket #FF-902 assigned</p>
+<p class="text-xs text-on-surface-variant mt-0.5">DB Optimization required for legacy...</p>
+<span class="inline-block mt-2 px-2 py-0.5 rounded bg-surface-container text-on-surface-variant text-[10px] font-black uppercase">ROUTINE</span>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 text-center text-xs font-black text-primary uppercase tracking-widest hover:underline" onclick="openModal()">View All Integrations</button>
+</div>
+</aside>
+</div>
+</main>
+<!-- Integrations Modal -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 hidden" id="integrations-modal">
+<div class="w-full max-width-md bg-surface-container-lowest rounded-[2rem] shadow-[0_40px_80px_rgba(0,27,68,0.12)] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-300">
+<div class="px-8 pt-8 pb-6 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<h2 class="text-xl font-extrabold text-primary tracking-tight font-headline">Connected Integrations</h2>
+</div>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95 duration-150" onclick="closeModal()">
+<span class="material-symbols-outlined text-outline">close</span>
+</button>
+</div>
+<div class="px-8 py-2">
+<div class="space-y-3">
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-2xl hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-primary">mail</span>
+</div>
+<span class="font-bold text-primary font-headline">Gmail</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-secondary-container rounded-full">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-[10px] font-extrabold text-on-secondary-container uppercase tracking-wider">Active</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-2xl hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-primary">message</span>
+</div>
+<span class="font-bold text-primary font-headline">Slack</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-secondary-container rounded-full">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-[10px] font-extrabold text-on-secondary-container uppercase tracking-wider">Active</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-2xl hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-primary">check</span>
+</div>
+<span class="font-bold text-primary font-headline">Jira</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-secondary-container rounded-full">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-[10px] font-extrabold text-on-secondary-container uppercase tracking-wider">Active</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-8">
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary py-4 rounded-xl font-bold shadow-lg active:scale-[0.98] transition-all duration-200 tracking-wide" onclick="closeModal()">Done</button>
+</div>
+</div>
+</div>
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('main-container');
+        
+        sidebar.classList.toggle('hidden-sidebar');
+        
+        if (window.innerWidth >= 1024) {
+            main.classList.toggle('sidebar-open');
+        }
+    }
+
+    let activeFilter = null;
+    function setFilter(category, element) {
+        activeFilter = category;
+        document.getElementById('stream-title').innerHTML = `<span class="material-symbols-outlined text-primary">inbox</span> ${category.charAt(0) + category.slice(1).toLowerCase()} Items Filtered`;
+        document.getElementById('clear-filter').classList.remove('hidden');
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('border-primary', 'shadow-sm'));
+        element.classList.add('border-primary', 'shadow-sm');
+        const streamItems = document.querySelectorAll('#incoming-stream-card .space-y-4 > div');
+        streamItems.forEach(item => {
+            const tag = item.querySelector('span[class*="rounded"]').innerText;
+            if (tag === activeFilter) {
+                item.classList.remove('hidden');
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+        document.getElementById('incoming-stream-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function clearFilter() {
+        activeFilter = null;
+        document.getElementById('stream-title').innerHTML = `<span class="material-symbols-outlined text-primary">inbox</span> Incoming Stream`;
+        document.getElementById('clear-filter').classList.add('hidden');
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('border-primary', 'shadow-sm'));
+        document.querySelectorAll('#incoming-stream-card .space-y-4 > div').forEach(item => {
+            item.classList.remove('hidden');
+        });
+    }
+
+    let state = {
+        initialDone: 14,
+        totalToCompleteToday: 2,
+        completedToday: 0,
+        tasks: {}
+    };
+
+    function updateProgress() {
+        const totalDone = state.initialDone + state.completedToday;
+        const leftToday = state.totalToCompleteToday - state.completedToday;
+        const percent = Math.round(((state.initialDone + state.completedToday) / (state.initialDone + state.totalToCompleteToday)) * 100);
+
+        document.getElementById('stat-tasks-done').innerText = totalDone;
+        document.getElementById('stat-tasks-left').innerText = leftToday + ' Left Today';
+        document.getElementById('session-progress-bar').style.width = percent + '%';
+        document.getElementById('session-goal-text').innerText = percent + '% DAILY GOAL';
+    }
+
+    function completeTask(taskId, btn) {
+        if (state.tasks[taskId]) return;
+        state.tasks[taskId] = true;
+        state.completedToday++;
+        const card = btn.closest('.task-card');
+        card.style.opacity = '0.6';
+        card.classList.add('grayscale-[0.5]');
+        btn.innerHTML = '<span class="material-symbols-outlined text-sm mr-1">check_circle</span> Completed';
+        btn.disabled = true;
+        btn.classList.remove('hover:scale-95');
+        btn.classList.add('bg-secondary', 'cursor-default');
+        updateProgress();
+    }
+
+    function openModal() {
+        document.getElementById('integrations-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('integrations-modal').classList.add('hidden');
+    }
+</script>
+</body></html>

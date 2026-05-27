@@ -56,7 +56,11 @@ export interface DbUser {
   id: string;
   email: string;
   name: string;
+  display_name: string | null;
+  secondary_emails: string[] | null;
+  linked_accounts: Record<string, unknown> | null;
   avatar_url: string | null;
+  password_hash: string | null;
   created_at: Date;
   updated_at: Date;
 }

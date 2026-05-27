@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-dim": "#dbd9d9",
+                      "secondary": "#006d43",
+                      "on-tertiary-container": "#c39100",
+                      "tertiary-fixed": "#ffdfa0",
+                      "on-tertiary-fixed-variant": "#5c4300",
+                      "primary-fixed": "#d8e2ff",
+                      "on-primary-container": "#7999dc",
+                      "outline": "#747781",
+                      "on-primary-fixed": "#001a42",
+                      "on-tertiary-fixed": "#261a00",
+                      "tertiary": "#271a00",
+                      "on-secondary-fixed-variant": "#005232",
+                      "surface-container-high": "#eae8e7",
+                      "inverse-on-surface": "#f2f0f0",
+                      "on-secondary-container": "#007147",
+                      "on-background": "#1b1c1c",
+                      "secondary-container": "#75f8b3",
+                      "surface-container-highest": "#e4e2e2",
+                      "outline-variant": "#c4c6d2",
+                      "primary": "#001b44",
+                      "inverse-surface": "#303030",
+                      "background": "#fbf9f8",
+                      "tertiary-fixed-dim": "#fbbc00",
+                      "error-container": "#ffdad6",
+                      "secondary-fixed-dim": "#59de9b",
+                      "on-secondary": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "surface-tint": "#3c5d9c",
+                      "inverse-primary": "#aec6ff",
+                      "primary-fixed-dim": "#aec6ff",
+                      "surface-container-low": "#f5f3f3",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "primary-container": "#002f6c",
+                      "surface-variant": "#e4e2e2",
+                      "on-secondary-fixed": "#002111",
+                      "on-surface-variant": "#434750",
+                      "error": "#ba1a1a",
+                      "on-error": "#ffffff",
+                      "surface-container": "#efeded",
+                      "surface-bright": "#fbf9f8",
+                      "tertiary-container": "#412e00",
+                      "on-error-container": "#93000a",
+                      "surface": "#fbf9f8",
+                      "secondary-fixed": "#78fbb6",
+                      "on-surface": "#1b1c1c",
+                      "on-primary-fixed-variant": "#224583"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Manrope"],
+                      "display": ["Manrope"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .orb-gradient {
+            background: radial-gradient(circle at center, rgba(0, 27, 68, 0.08) 0%, rgba(251, 249, 248, 0) 70%);
+        }
+        /* Page-wide seamless background gradient */
+        .page-gradient {
+            background: linear-gradient(180deg, #fbf9f8 0%, #f0fdf4 50%, #fbf9f8 100%);
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="page-gradient text-on-background font-body selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen">
+<!-- TopNavBar -->
+<nav class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl docked full-width top-0 sticky z-50 shadow-[0_20px_40px_rgba(0,27,68,0.06)]">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<div class="text-2xl font-black text-blue-900 dark:text-white bg-clip-text bg-gradient-to-br from-blue-900 to-blue-700 font-headline">FocusFlow</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-blue-900 dark:text-blue-400 font-bold border-b-2 border-blue-900 dark:border-blue-400 pb-1 font-headline" href="#hero">Product</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium hover:text-blue-800 transition-colors font-headline" href="#">Integrations</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium hover:text-blue-800 transition-colors font-headline" href="#benefits">Benefits</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-5 py-2 text-blue-900 dark:text-blue-100 font-bold font-headline transition-transform scale-95 active:scale-90">Sign In</button>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-headline font-bold hover:bg-primary-container transition-all shadow-lg active:scale-95">Get Started</button>
+</div>
+</div>
+</nav>
+<main>
+<!-- Interactive Hero Section -->
+<section class="relative overflow-hidden min-h-[870px] flex items-center pt-20 pb-32" id="hero">
+<!-- Decorative Orb -->
+<div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="orb-gradient absolute -top-1/4 -right-1/4 w-[1000px] h-[1000px] rounded-full"></div>
+<div class="orb-gradient absolute -bottom-1/4 -left-1/4 w-[800px] h-[800px] rounded-full"></div>
+</div>
+<div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-xs font-bold tracking-widest uppercase mb-8">
+<span class="material-symbols-outlined text-[14px]">bolt</span>
+                Next Generation Productivity
+            </div>
+<h1 class="text-5xl md:text-7xl lg:text-8xl font-black font-headline tracking-tight text-primary leading-[1.05] mb-8">
+                Stop triaging chaos.<br/>
+<span class="bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary-container to-secondary">Start executing what matters.</span>
+</h1>
+<p class="text-xl md:text-2xl text-on-surface-variant max-w-2xl mx-auto mb-12 font-body leading-relaxed">
+                FocusFlow turns your scattered inbox into a single, ranked action queue. 
+                Architected for precision, built for performance.
+            </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+<button class="group bg-primary text-on-primary px-10 py-5 rounded-xl font-headline font-extrabold text-lg flex items-center gap-3 transition-all hover:shadow-2xl hover:shadow-primary/20 active:scale-95">
+                    Get Started
+                    <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Centralized Command (Integrations) -->
+<section class="py-32 px-6 bg-transparent">
+<div class="max-w-7xl mx-auto">
+<div class="mb-20">
+<h2 class="text-3xl font-black font-headline text-primary mb-4">Centralized Command</h2>
+<p class="text-on-surface-variant text-lg max-w-xl">Deep integrations that synchronize your workflow across every major platform.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl transition-all hover:-translate-y-2 hover:shadow-xl group">
+<div class="w-12 h-12 bg-surface-container-low rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-primary text-2xl">mail</span>
+</div>
+<h3 class="text-xl font-black font-headline text-primary mb-3">Gmail</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Prioritize urgent email threads and client blockers automatically.</p>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl transition-all hover:-translate-y-2 hover:shadow-xl group">
+<div class="w-12 h-12 bg-surface-container-low rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-primary text-2xl">chat_bubble</span>
+</div>
+<h3 class="text-xl font-black font-headline text-primary mb-3">Slack</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Promote high-impact channel messages while suppressing low-signal chatter.</p>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl transition-all hover:-translate-y-2 hover:shadow-xl group">
+<div class="w-12 h-12 bg-surface-container-low rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-primary text-2xl">check_box</span>
+</div>
+<h3 class="text-xl font-black font-headline text-primary mb-3">Jira</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Pull unresolved issues and rank by urgency and downstream impact.</p>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl transition-all hover:-translate-y-2 hover:shadow-xl group">
+<div class="w-12 h-12 bg-surface-container-low rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-primary text-2xl">calendar_today</span>
+</div>
+<h3 class="text-xl font-black font-headline text-primary mb-3">Calendar</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Blend meetings with work items so your schedule reflects true priorities.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Key Benefits -->
+<section class="py-32 px-6 bg-transparent" id="benefits">
+<div class="max-w-7xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-16">
+<div class="text-center">
+<span class="material-symbols-outlined text-6xl text-primary mb-6" style="font-variation-settings: 'FILL' 1;">timer</span>
+<h3 class="text-2xl font-black font-headline text-primary mb-4">Save Time</h3>
+<p class="text-on-surface-variant leading-relaxed">Eliminate the manual sorting process. Our algorithm saves engineers over 4 hours a week on average.</p>
+</div>
+<div class="text-center">
+<span class="material-symbols-outlined text-6xl text-secondary mb-6" style="font-variation-settings: 'FILL' 1;">priority_high</span>
+<h3 class="text-2xl font-black font-headline text-primary mb-4">Prioritise Work</h3>
+<p class="text-on-surface-variant leading-relaxed">Identify deep work tasks from administrative overhead instantly. Focus on code, not logistics.</p>
+</div>
+<div class="text-center">
+<span class="material-symbols-outlined text-6xl text-error mb-6" style="font-variation-settings: 'FILL' 1;">notification_important</span>
+<h3 class="text-2xl font-black font-headline text-primary mb-4">Get Notified for Deadlines</h3>
+<p class="text-on-surface-variant leading-relaxed">Never miss a critical milestone. Smart alerts predict blockers before they become delays.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Testimonial -->
+<section class="py-32 px-6 bg-transparent">
+<div class="max-w-5xl mx-auto">
+<div class="bg-primary p-12 md:p-20 rounded-[3rem] relative overflow-hidden shadow-2xl">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary-container rounded-full blur-[100px] opacity-50 -mr-32 -mt-32"></div>
+<div class="relative z-10">
+<div class="flex gap-1 mb-8">
+<span class="material-symbols-outlined text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<blockquote class="text-2xl md:text-4xl font-headline font-bold text-on-primary leading-tight mb-10 italic">
+                        "FocusFlow completely changed how our engineering team operates. We spend less time figuring out what to do, and more time actually shipping."
+                    </blockquote>
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full overflow-hidden border-2 border-primary-fixed">
+<img alt="Portrait of a professional female software engineering leader in a modern office environment" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFzhPp7ljZZuh8-jY6DNgFO_uvUtFvzI6piQ1Q7hKIc019SMQEATPY3MyfzIHAeeZxFd0lf1YWV00Um5cAYKulaWna1chFtY41pfZp0Zzq9fnwGBEtP9w_-2t7wJPMFM3SjGO1efEUuQ-pj1j57tgpektpABORmpwFqsAaRbkUB2TupgW8uNxT5MLlbTaBM7zZeouX7U_aMCV4msEiBE3OJDqcPIh4Af1yo8E_bEW8n9IIGtw9soGMtDiZZsWqWNx99MFv7EAZ7PE"/>
+</div>
+<div>
+<p class="text-white font-bold font-headline">Jane Doe</p>
+<p class="text-primary-fixed-dim text-sm">Lead Developer</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="full-width border-t border-slate-200/10 bg-transparent">
+<div class="max-w-7xl mx-auto px-6 py-12 text-center">
+<p class="text-on-surface-variant font-label text-sm">© 2026 FocusFlow Inc.</p>
+</div>
+</footer>
+</body></html>

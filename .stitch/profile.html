@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FocusFlow | User Profile &amp; Integrations</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#78fbb6",
+                        "on-surface-variant": "#434750",
+                        "inverse-primary": "#aec6ff",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c4c6d2",
+                        "secondary-fixed-dim": "#59de9b",
+                        "surface-dim": "#dbd9d9",
+                        "on-secondary-container": "#007147",
+                        "on-tertiary-fixed": "#261a00",
+                        "inverse-surface": "#303030",
+                        "surface": "#fbf9f8",
+                        "on-background": "#1b1c1c",
+                        "on-primary-fixed": "#001a42",
+                        "surface-bright": "#fbf9f8",
+                        "surface-container-high": "#eae8e7",
+                        "on-primary-fixed-variant": "#224583",
+                        "inverse-on-surface": "#f2f0f0",
+                        "primary-fixed-dim": "#aec6ff",
+                        "on-primary-container": "#7999dc",
+                        "tertiary-container": "#412e00",
+                        "on-tertiary-fixed-variant": "#5c4300",
+                        "surface-tint": "#3c5d9c",
+                        "primary-container": "#002f6c",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#1b1c1c",
+                        "on-secondary-fixed-variant": "#005232",
+                        "outline": "#747781",
+                        "on-error": "#ffffff",
+                        "secondary": "#006d43",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#002111",
+                        "surface-container": "#efeded",
+                        "secondary-container": "#75f8b3",
+                        "error-container": "#ffdad6",
+                        "background": "#fbf9f8",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed": "#ffdfa0",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#271a00",
+                        "primary": "#001b44",
+                        "surface-variant": "#e4e2e2",
+                        "on-tertiary-container": "#c39100",
+                        "primary-fixed": "#d8e2ff",
+                        "tertiary-fixed-dim": "#fbbc00",
+                        "surface-container-low": "#f5f3f3",
+                        "surface-container-highest": "#e4e2e2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "display": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .brand-font { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            background: rgba(251, 249, 248, 0.8);
+            backdrop-filter: blur(12px);
+        }
+        /* Dropdown transition */
+        #profile-dropdown {
+            display: none;
+        }
+        #profile-button:focus-within #profile-dropdown,
+        #profile-dropdown:hover {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<main class="flex-1 overflow-y-auto bg-background">
+<!-- TopAppBar (Updated) -->
+<header class="sticky top-0 z-50 flex justify-between items-center w-full px-8 py-4 bg-[#fbf9f8]/80 backdrop-blur-md dark:bg-[#001b44]/80">
+<div class="flex items-center gap-8">
+<h1 class="font-['Manrope'] font-black text-[#001b44] dark:text-[#fbf9f8] tracking-tight text-2xl">FocusFlow</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:bg-[#f5f3f3] rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="relative group" id="profile-button">
+<button class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed-dim shadow-sm focus:outline-none focus:ring-2 focus:ring-primary">
+<img alt="User profile avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2RWiiE9vfq-7pH9yAd5CZoVkLQQe73M0wKBR_qQWTEafdziUwOHdUg2bxkgC1aaMph2hbSro_A8SysA8HHcPN-rHq2-s8IpeW1GKjvgVs5DxZmd72dK2YXUGX3Wl-t29tKteKqYbAgi3s9PS4qPyiOByJwMEIMPEbd-hYVo7RcPhSg50MvIq64fOIbLm77NglOxXe8ZuM1rpGIpuhc3UY3R6Gy3YJR9JuNvcShkuQTZn35FEBonX4d5CwkO3G_4yolAPziGBufbw"/>
+</button>
+<!-- Sign Out Dropdown -->
+<div class="absolute right-0 mt-2 w-48 bg-surface-container-lowest rounded-xl shadow-xl border border-outline-variant/10 py-2 z-50" id="profile-dropdown">
+<a class="flex items-center px-4 py-3 text-[#434750] hover:bg-surface-variant transition-colors group" href="#">
+<span class="material-symbols-outlined mr-3 text-error">logout</span>
+<span class="font-['Inter'] text-sm font-bold text-error">Sign Out</span>
+</a>
+</div>
+</div>
+</div>
+</header>
+<div class="p-8 lg:p-16 max-w-7xl mx-auto">
+<!-- User Profile Hero Section (Updated) -->
+<section class="mb-16 flex flex-col md:flex-row items-center md:items-end gap-8">
+<div class="relative">
+<div class="w-32 h-32 md:w-48 md:h-48 rounded-full border-8 border-white shadow-[0_20px_40px_rgba(0,27,68,0.06)] overflow-hidden">
+<img alt="Chhavi Joshi Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzVATEns1jllxYVCmsbehD-KNFP3C3Jv7fZEOsmd24CEWR6OCK5sS4jwRLo97u3bM-vE2tn7Q14O5BFoQyHaWVjpk72vKsItoz-JPViMABhb056CpCr6csbkbTPep8NjqqzI2dyNiGta9Odzpc_L1MoDlcXVgZWSuuKvdR5YfVSIq-CE4gBZZYZMSR3U54bvYokS7B_VMgtRZt40vCIYK7FePdMz2-LLG9n8DfDbxbo5f8beiYXCs_j-WDXD89N0VXDLMcUtunbgg"/>
+</div>
+<div class="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-secondary text-white p-2 rounded-full shadow-lg border-4 border-white">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="text-center md:text-left flex-1">
+<h1 class="text-display-lg text-4xl md:text-6xl font-black text-primary leading-tight mb-4">Chhavi Joshi</h1>
+<div class="flex flex-wrap justify-center md:justify-start gap-4">
+<div class="flex items-center gap-2 bg-surface-container-lowest px-4 py-2 rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-primary-container">mail</span>
+<span class="text-sm font-medium">chhavi.j@prioritize.ai</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-3 bg-surface-container-lowest text-primary font-bold rounded-xl shadow-sm hover:bg-surface-variant transition-all border border-outline-variant/10">Edit Profile</button>
+</div>
+</section>
+<!-- Integration Settings Section (Updated) -->
+<section>
+<div class="flex items-center justify-between mb-8">
+<div>
+<h2 class="text-2xl font-extrabold text-primary">Integration Settings</h2>
+<p class="text-on-surface-variant text-sm mt-1">Manage your connected workflows and automated task syncs.</p>
+</div>
+</div>
+<!-- 2x2 Bento Grid of IntegrationCards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Integration Card: Gmail -->
+<div class="bg-surface-container-lowest rounded-[1rem] p-8 shadow-[0_20px_40px_rgba(0,27,68,0.06)] group hover:scale-[1.01] transition-all border border-outline-variant/5">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">mail</span>
+</div>
+<div>
+<h3 class="font-bold text-lg text-primary">Gmail</h3>
+<p class="text-xs text-on-surface-variant font-medium">Communication</p>
+</div>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                    Connected
+                                </div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-xs font-semibold text-on-surface-variant uppercase tracking-tighter">
+<span>Sync Progress</span>
+<span>60% Done</span>
+</div>
+<div class="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full w-[60%] bg-gradient-to-r from-primary to-primary-container rounded-full"></div>
+</div>
+<div class="flex items-center justify-between">
+<p class="text-sm font-medium text-primary">4 Tasks Remaining</p>
+<button class="text-primary-container text-xs font-bold hover:underline">Manage Rules</button>
+</div>
+</div>
+</div>
+<!-- Integration Card: Slack -->
+<div class="bg-surface-container-lowest rounded-[1rem] p-8 shadow-[0_20px_40px_rgba(0,27,68,0.06)] group hover:scale-[1.01] transition-all border border-outline-variant/5">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">forum</span>
+</div>
+<div>
+<h3 class="font-bold text-lg text-primary">Slack</h3>
+<p class="text-xs text-on-surface-variant font-medium">Collaboration</p>
+</div>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                    Connected
+                                </div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-xs font-semibold text-on-surface-variant uppercase tracking-tighter">
+<span>Sync Progress</span>
+<span>40% Done</span>
+</div>
+<div class="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full w-[40%] bg-gradient-to-r from-primary to-primary-container rounded-full"></div>
+</div>
+<div class="flex items-center justify-between">
+<p class="text-sm font-medium text-primary">3 Tasks Remaining</p>
+<button class="text-primary-container text-xs font-bold hover:underline">Manage Rules</button>
+</div>
+</div>
+</div>
+<!-- Integration Card: Jira (Disconnected) -->
+<div class="bg-surface-container-lowest rounded-[1rem] p-8 shadow-[0_20px_40px_rgba(0,27,68,0.06)] group hover:scale-[1.01] transition-all border border-outline-variant/5">
+<div class="flex justify-between items-start mb-8">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+</div>
+<div>
+<h3 class="font-bold text-lg text-primary">Jira</h3>
+<p class="text-xs text-on-surface-variant font-medium">Development</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-wider">
+                                    Offline
+                                </div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-4 mb-6">
+<p class="text-sm text-on-surface-variant text-center italic">Link your Jira workspace to automatically import tickets as prioritized tasks.</p>
+</div>
+<button class="w-full py-4 bg-primary text-white font-black rounded-xl shadow-lg hover:shadow-primary/20 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">link</span>
+                                Connect Jira Account
+                            </button>
+</div>
+<!-- Integration Card: Google Calendar -->
+<div class="bg-surface-container-lowest rounded-[1rem] p-8 shadow-[0_20px_40px_rgba(0,27,68,0.06)] group hover:scale-[1.01] transition-all border border-outline-variant/5">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center text-blue-800">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+</div>
+<div>
+<h3 class="font-bold text-lg text-primary">Google Calendar</h3>
+<p class="text-xs text-on-surface-variant font-medium">Productivity</p>
+</div>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                    Connected
+                                </div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-xs font-semibold text-on-surface-variant uppercase tracking-tighter">
+<span>Sync Progress</span>
+<span>50% Done</span>
+</div>
+<div class="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full w-[50%] bg-gradient-to-r from-primary to-primary-container rounded-full"></div>
+</div>
+<div class="flex items-center justify-between">
+<p class="text-sm font-medium text-primary">4 Tasks Remaining</p>
+<button class="text-primary-container text-xs font-bold hover:underline">Manage Rules</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</body></html>

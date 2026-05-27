@@ -1,17 +1,21 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import { sessionMiddleware } from './config/session.js';
-import { errorHandler } from './middleware/errorHandler.js';
-import { generalLimiter } from './middleware/rateLimiter.js';
-import { env } from './config/env.js';
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import { sessionMiddleware } from "./config/session.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import { generalLimiter } from "./middleware/rateLimiter.js";
+import { env } from "./config/env.js";
 
 // Routes
-import authRoutes from './routes/auth.routes.js';
-import inboxRoutes from './routes/inbox.routes.js';
-import analysisRoutes from './routes/analysis.routes.js';
-import tasksRoutes from './routes/tasks.routes.js';
-import integrationsRoutes from './routes/integrations.routes.js';
+import authRoutes from "./routes/auth.routes.js";
+import apiAuthRoutes from "./routes/api-auth.routes.js";
+import inboxRoutes from "./routes/inbox.routes.js";
+import analysisRoutes from "./routes/analysis.routes.js";
+import tasksRoutes from "./routes/tasks.routes.js";
+import integrationsRoutes from "./routes/integrations.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
+import notificationsRoutes from "./routes/notifications.routes.js";
 
 /**
  * Express app factory.
@@ -22,38 +26,46 @@ export function createApp() {
   const app = express();
 
   // Trust first proxy (Nginx, Cloud Run, etc.) so req.ip / req.secure are correct
-  app.set('trust proxy', 1);
+  app.set("trust proxy", 1);
 
   // ---- Security Middleware ----
-  app.use(helmet({
-    // Disable CSP in dev since Vite injects inline scripts
-    contentSecurityPolicy: env.isProd ? undefined : false,
-  }));
+  app.use(
+    helmet({
+      // Disable CSP in dev since Vite injects inline scripts
+      contentSecurityPolicy: env.isProd ? undefined : false,
+    }),
+  );
 
-  app.use(cors({
-    origin: env.frontendUrl,
-    credentials: true,  // Required for cookies to be sent cross-origin
-  }));
+  app.use(
+    cors({
+      origin: env.frontendUrl,
+      credentials: true, // Required for cookies to be sent cross-origin
+    }),
+  );
 
   // ---- Body Parsing ----
-  app.use(express.json({ limit: '1mb' }));
+  app.use(express.json({ limit: "1mb" }));
 
   // ---- Session ----
   app.use(sessionMiddleware);
 
   // ---- Rate Limiting ----
-  app.use('/api', generalLimiter);
+  app.use("/api", generalLimiter);
 
   // ---- Routes ----
-  app.use('/auth', authRoutes);
-  app.use('/api/inbox', inboxRoutes);
-  app.use('/api/analyze', analysisRoutes);
-  app.use('/api/tasks', tasksRoutes);
-  app.use('/api/integrations', integrationsRoutes);
+  app.use("/auth", authRoutes);
+  app.use("/api/auth", apiAuthRoutes);
+  app.use("/api/inbox", inboxRoutes);
+  app.use("/api/analyze", analysisRoutes);
+  app.use("/api/tasks", tasksRoutes);
+  app.use("/api/integrations", integrationsRoutes);
+  app.use("/api/user", userRoutes);
+  app.use("/api/dashboard", dashboardRoutes);
+  app.use("/api/notifications", notificationsRoutes);
 
   // Health check
-  app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  app.get("/health", (_req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
   // ---- Error Handler (must be last) ----

@@ -3,56 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FocusFlow - AI Priority Engine</title>
+    <title>FocusFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
-      tailwind = {
-        config: {
-          darkMode: "class",
-          theme: {
-            extend: {
-              colors: {
-                fleet: {
-                  lightBase: "#F9FAFB",
-                  lightPanel: "#FFFFFF",
-                  lightNav: "#1E3A8A",
-                  lightText: "#111827",
-                  lightAccent: "#1D4ED8",
-                  lightSuccess: "#10B981",
-                  darkBase: "#0F172A",
-                  darkPanel: "#1F2937",
-                  darkNav: "#F3F4F6",
-                  darkText: "#FFFFFF",
-                  darkAccent: "#3B82F6",
-                  darkSuccess: "#34D399",
-                },
-              },
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["IBM Plex Sans", "Segoe UI", "sans-serif"],
             },
           },
         },
       };
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <script type="importmap">
-      {
-        "imports": {
-          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-          "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0",
-          "react/": "https://aistudiocdn.com/react@^19.2.0/",
-          "react": "https://aistudiocdn.com/react@^19.2.0",
-          "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-          "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-          "recharts": "https://aistudiocdn.com/recharts@^3.4.1"
-        }
-      }
-    </script>
-    <link rel="stylesheet" href="/index.css" />
   </head>
-  <body>
+  <body class="bg-slate-50 text-slate-900 font-sans">
     <div id="root"></div>
-    <script type="module" src="/src/index.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
