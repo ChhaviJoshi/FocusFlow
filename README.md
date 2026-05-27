@@ -23,6 +23,7 @@
 ## Tech Stack
 
 ### Frontend
+
 - React 19 + TypeScript
 - Vite 6 (dev server + build)
 - TailwindCSS (via CDN)
@@ -30,6 +31,7 @@
 - Lucide React (icons)
 
 ### Backend
+
 - Node.js + Express + TypeScript
 - PostgreSQL (users, integrations, analysis history, tasks)
 - Redis (session storage + AI response cache)
@@ -82,54 +84,57 @@ Open `http://localhost:3000` and sign in with Google.
 
 ### Environment Variables
 
-| Variable | Description |
-|---|---|
-| `GOOGLE_CLIENT_ID` | OAuth 2.0 Client ID from Google Cloud Console |
-| `GOOGLE_CLIENT_SECRET` | OAuth 2.0 Client Secret |
-| `GOOGLE_CALLBACK_URL` | OAuth redirect URI (`http://localhost:3001/auth/google/callback`) |
-| `GEMINI_API_KEY` | API key from Google AI Studio |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `REDIS_URL` | Redis connection string |
-| `SESSION_SECRET` | Random 64-char secret for session encryption |
-| `ENCRYPTION_KEY` | Random 64-hex-char key for AES-256-GCM token encryption |
+| Variable               | Description                                                       |
+| ---------------------- | ----------------------------------------------------------------- |
+| `GOOGLE_CLIENT_ID`     | OAuth 2.0 Client ID from Google Cloud Console                     |
+| `GOOGLE_CLIENT_SECRET` | OAuth 2.0 Client Secret                                           |
+| `GOOGLE_CALLBACK_URL`  | OAuth redirect URI (`http://localhost:3001/auth/google/callback`) |
+| `GEMINI_API_KEY`       | API key from Google AI Studio                                     |
+| `DATABASE_URL`         | PostgreSQL connection string                                      |
+| `REDIS_URL`            | Redis connection string                                           |
+| `SESSION_SECRET`       | Random 64-char secret for session encryption                      |
+| `ENCRYPTION_KEY`       | Random 64-hex-char key for AES-256-GCM token encryption           |
 
 ### Scripts
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start frontend only (port 3000) |
-| `npm run dev:server` | Start backend only (port 3001) |
-| `npm run dev:all` | Start both frontend and backend |
-| `npm run build` | Build frontend for production |
-| `npm run setup` | Install all dependencies (frontend + server) |
-| `npm run db:migrate` | Run database migrations |
+| Command              | Description                                  |
+| -------------------- | -------------------------------------------- |
+| `npm run dev`        | Start frontend only (port 3000)              |
+| `npm run dev:server` | Start backend only (port 3001)               |
+| `npm run dev:all`    | Start both frontend and backend              |
+| `npm run build`      | Build frontend for production                |
+| `npm run setup`      | Install all dependencies (frontend + server) |
+| `npm run db:migrate` | Run database migrations                      |
 
 ## API Endpoints
 
 ### Authentication
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| `GET` | `/auth/google` | No | Initiate Google OAuth flow |
-| `GET` | `/auth/google/callback` | No | OAuth callback handler |
-| `GET` | `/auth/me` | Yes | Get current user profile |
-| `POST` | `/auth/logout` | Yes | Destroy session |
+
+| Method | Path                    | Auth | Description                |
+| ------ | ----------------------- | ---- | -------------------------- |
+| `GET`  | `/auth/google`          | No   | Initiate Google OAuth flow |
+| `GET`  | `/auth/google/callback` | No   | OAuth callback handler     |
+| `GET`  | `/auth/me`              | Yes  | Get current user profile   |
+| `POST` | `/auth/logout`          | Yes  | Destroy session            |
 
 ### Core API
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/inbox` | Yes | Fetch aggregated inbox from all sources |
-| `POST` | `/api/analyze` | Yes | Run AI analysis (cached) |
-| `GET` | `/api/analyze` | Yes | Get analysis history |
-| `PATCH` | `/api/tasks/:id` | Yes | Update task status |
-| `GET` | `/api/tasks` | Yes | List tasks |
+
+| Method  | Path             | Auth | Description                             |
+| ------- | ---------------- | ---- | --------------------------------------- |
+| `GET`   | `/api/inbox`     | Yes  | Fetch aggregated inbox from all sources |
+| `POST`  | `/api/analyze`   | Yes  | Run AI analysis (cached)                |
+| `GET`   | `/api/analyze`   | Yes  | Get analysis history                    |
+| `PATCH` | `/api/tasks/:id` | Yes  | Update task status                      |
+| `GET`   | `/api/tasks`     | Yes  | List tasks                              |
 
 ### Integrations
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/integrations` | Yes | List connected integrations |
-| `POST` | `/api/integrations/slack` | Yes | Save Slack token |
-| `POST` | `/api/integrations/jira` | Yes | Save Jira credentials |
-| `DELETE` | `/api/integrations/:provider` | Yes | Disconnect integration |
+
+| Method   | Path                          | Auth | Description                 |
+| -------- | ----------------------------- | ---- | --------------------------- |
+| `GET`    | `/api/integrations`           | Yes  | List connected integrations |
+| `POST`   | `/api/integrations/slack`     | Yes  | Save Slack token            |
+| `POST`   | `/api/integrations/jira`      | Yes  | Save Jira credentials       |
+| `DELETE` | `/api/integrations/:provider` | Yes  | Disconnect integration      |
 
 ## Project Structure
 
@@ -137,19 +142,19 @@ Open `http://localhost:3000` and sign in with Google.
 focusflow/
 ├── src/                        # Frontend (React + TypeScript)
 │   ├── components/
-│   │   ├── Analytics.tsx       # Workload distribution chart
-│   │   ├── Dashboard.tsx       # Main dashboard view
 │   │   ├── ErrorBoundary.tsx   # Error recovery UI
-│   │   ├── LoginScreen.tsx     # Google OAuth sign-in
-│   │   ├── PermissionScreen.tsx# Integration setup
-│   │   ├── PriorityCard.tsx    # AI-prioritized task card
-│   │   ├── SourceIcon.tsx      # Integration source icons
-│   │   └── StreamItem.tsx      # Inbox stream item
+│   │   └── IntegrationsModal.tsx# Integrations overlay
+│   ├── pages/
+│   │   ├── LandingPage.tsx     # Marketing landing page
+│   │   ├── AuthLoginPage.tsx   # Login screen
+│   │   ├── AuthSignupPage.tsx  # Sign-up screen
+│   │   ├── DashboardPage.tsx   # Priority dashboard
+│   │   ├── ProfilePage.tsx     # Profile + integrations
+│   │   └── IntegrationsModalPage.tsx # Integrations canvas
 │   ├── services/
 │   │   └── api.ts              # Backend API client
 │   ├── App.tsx                 # Root component + auth state
-│   ├── types.ts                # Frontend type definitions
-│   └── constants.ts            # Mock data (fallback)
+│   └── types.ts                # Frontend type definitions
 │
 ├── server/                     # Backend (Express + TypeScript)
 │   └── src/
