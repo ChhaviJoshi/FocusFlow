@@ -1,0 +1,388 @@
+# FocusFlow — Production-Ready Implementation Plan
+
+## Goal
+Transform FocusFlow from a client-side prototype into a production-ready full-stack application with a Node.js backend, real Google OAuth, PostgreSQL persistence, Redis caching, and hardened integrations.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **5 clarifying questions at the bottom of this document** need your input before I start writing code. The structure and auth flow below are ready for your review.
+
+---
+
+## Proposed Backend Folder Structure
+
+```
+c:\Projects\copy-of-focusflow\
+├── server/                          # ← NEW: entire backend
+│   ├── src/
+│   │   ├── index.ts                 # Express app bootstrap + listen
+│   │   ├── app.ts                   # Express app factory (middleware, routes)
+│   │   ├── config/
+│   │   │   ├── env.ts               # dotenv loader + typed config object
+│   │   │   ├── database.ts          # pg Pool setup
+│   │   │   ├── redis.ts             # Redis client setup
+│   │   │   └── session.ts           # express-session + RedisStore config
+│   │   ├── middleware/
+│   │   │   ├── auth.ts              # requireAuth — checks session, attaches user
+│   │   │   ├── errorHandler.ts      # Global async error handler
+│   │   │   └── rateLimiter.ts       # Per-user rate limiting (express-rate-limit)
+│   │   ├── routes/
+│   │   │   ├── auth.routes.ts       # GET /auth/google, GET /auth/google/callback, POST /auth/logout, GET /auth/me
+│   │   │   ├── inbox.routes.ts      # GET /api/inbox (fetches from all connected sources)
+│   │   │   ├── analysis.routes.ts   # POST /api/analyze, GET /api/analyses (history)
+│   │   │   ├── tasks.routes.ts      # PATCH /api/tasks/:id (complete/dismiss)
+│   │   │   └── integrations.routes.ts # POST /api/integrations/:provider, DELETE /api/integrations/:provider
+│   │   ├── controllers/
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── inbox.controller.ts
+│   │   │   ├── analysis.controller.ts
+│   │   │   ├── tasks.controller.ts
+│   │   │   └── integrations.controller.ts
+│   │   ├── services/
+│   │   │   ├── auth.service.ts       # User upsert, session management
+│   │   │   ├── gmail.service.ts      # Gmail API fetch (server-side)
+│   │   │   ├── calendar.service.ts   # Google Calendar API fetch
+│   │   │   ├── slack.service.ts      # Slack API fetch (no CORS issue server-side)
+│   │   │   ├── jira.service.ts       # Jira API fetch (no CORS issue server-side)
+│   │   │   ├── gemini.service.ts     # Gemini AI call + Zod validation
+│   │   │   ├── cache.service.ts      # Redis caching (hash-based key, 20min TTL)
+│   │   │   └── crypto.service.ts     # AES-256-GCM encrypt/decrypt for tokens
+│   │   ├── db/
+│   │   │   ├── schema.sql            # Full PostgreSQL schema
+│   │   │   ├── queries/
+│   │   │   │   ├── users.queries.ts
+│   │   │   │   ├── integrations.queries.ts
+│   │   │   │   ├── analyses.queries.ts
+│   │   │   │   └── tasks.queries.ts
+│   │   │   └── migrate.ts           # Simple migration runner
+│   │   ├── validators/
+│   │   │   ├── gemini.schema.ts      # Zod schema for AnalysisResult
+│   │   │   ├── integration.schema.ts # Zod schema for token input validation
+│   │   │   └── sanitizer.ts          # Prompt injection sanitizer
+│   │   └── types/
+│   │       └── index.ts              # Shared server-side types
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── nodemon.json                  # Dev auto-reload config
+│
+├── src/                              # ← EXISTING frontend (minor modifications)
+│   ├── (existing components — LoginScreen replaced, Dashboard rewired)
+│   └── services/
+│       ├── api.ts                    # NEW: single fetch wrapper for backend calls
+│       └── (geminiService.ts — DELETED, moved to server)
+│       └── (integrationService.ts — DELETED, moved to server)
+│
+├── docker-compose.yml                # NEW: Postgres + Redis
+├── .env.example                      # NEW: all required env vars documented
+├── MIGRATION.md                      # NEW: prototype → production migration guide
+├── vite.config.ts                    # MODIFIED: add proxy to backend
+└── package.json                      # MODIFIED: add concurrently for dev
+```
+
+### Why This Structure
+
+| Decision | Rationale |
+|---|---|
+| **`server/` as separate directory** (not a separate repo) | Monorepo keeps everything in one place; shared types possible; single `docker-compose` spins up everything |
+| **Express over NestJS** | Lower ceremony, faster to ship, more idiomatic for a project this size. NestJS's DI + decorators add overhead without clear benefit here |
+| **Raw `pg` with query files** instead of Drizzle | Drizzle adds a build step and migration tooling that complicates the setup. Raw SQL queries in typed functions are simpler, more transparent, and you control every query. If you prefer Drizzle, I can switch — see Q1 below |
+| **`validators/` with Zod** | Strict runtime validation on Gemini responses + user input. Never trust `as SomeType` |
+| **`services/` per integration** | Each provider has different auth, pagination, and data mapping. Separate files keep them testable and replaceable |
+| **No `models/` directory** | With raw `pg`, there are no ORM model classes. Types live in `types/`, queries live in `db/queries/` |
+
+---
+
+## Auth Flow Design
+
+### Overview
+
+Google OAuth 2.0 serves **dual purpose**: authenticates the user AND provides the OAuth token for Gmail + Calendar API access. This eliminates the need for users to manually paste a Google token.
+
+### Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant U as Browser
+    participant FE as React SPA
+    participant BE as Express Backend
+    participant G as Google OAuth
+    participant DB as PostgreSQL
+    participant RD as Redis
+
+    Note over U,RD: === Login Flow ===
+    
+    U->>FE: Click "Sign in with Google"
+    FE->>BE: GET /auth/google
+    BE->>U: 302 Redirect → Google Consent Screen
+    Note over G: Scopes requested:<br/>openid, profile, email,<br/>gmail.readonly, calendar.readonly
+    U->>G: User grants consent
+    G->>BE: GET /auth/google/callback?code=xxx
+    
+    BE->>G: Exchange code for tokens (server-side)
+    G-->>BE: { access_token, refresh_token, id_token, expiry }
+    
+    BE->>DB: Upsert user (email, name, avatar from id_token)
+    BE->>DB: Upsert integration (provider='google', encrypted tokens)
+    BE->>RD: Create session { userId, email }
+    BE->>U: Set-Cookie: sid=xxx (httpOnly, Secure, SameSite=Lax)<br/>302 Redirect → /dashboard
+
+    Note over U,RD: === Authenticated API Call ===
+    
+    FE->>BE: GET /api/inbox (Cookie: sid=xxx)
+    BE->>RD: Validate session → get userId
+    BE->>DB: Get google integration for userId
+    BE->>BE: Decrypt access_token
+    BE->>G: Fetch Gmail + Calendar (Bearer token)
+    G-->>BE: Email/Calendar data
+    BE-->>FE: Normalized InboxItem[]
+    
+    Note over U,RD: === Token Refresh (Transparent) ===
+    
+    BE->>G: Gmail call fails (401)
+    BE->>G: POST /token (refresh_token)
+    G-->>BE: New access_token
+    BE->>DB: Update encrypted access_token
+    BE->>G: Retry Gmail call
+    G-->>BE: Success
+```
+
+### Key Auth Decisions
+
+| Decision | Choice | Why |
+|---|---|---|
+| **Session strategy** | Server-side sessions in Redis (via `express-session` + `connect-redis`) | More secure than JWT in cookies — sessions can be invalidated server-side instantly. Redis keeps session lookups fast |
+| **Cookie settings** | `httpOnly: true, secure: true, sameSite: 'lax', maxAge: 7 days` | `httpOnly` prevents XSS access. `lax` (not `strict`) because we need the cookie sent during the Google OAuth redirect back |
+| **Token storage** | Encrypted in PostgreSQL (`integrations` table) | AES-256-GCM with a server-side `ENCRYPTION_KEY` from `.env`. Tokens never leave the server |
+| **Token refresh** | Transparent server-side rotation | When a Google API call returns 401, the backend automatically refreshes using the stored refresh_token, updates the DB, and retries |
+| **SameSite = Lax** | Not Strict | `SameSite=Strict` would block the cookie on the OAuth callback redirect from Google → our backend. `Lax` allows top-level navigations (which is exactly what the OAuth redirect is) |
+
+### OAuth Scopes Requested
+
+```
+openid                                    → Get user identity (id_token)
+https://www.googleapis.com/auth/userinfo.email    → Email address
+https://www.googleapis.com/auth/userinfo.profile  → Name + avatar
+https://www.googleapis.com/auth/gmail.readonly    → Read Gmail
+https://www.googleapis.com/auth/calendar.readonly → Read Calendar events
+```
+
+> [!NOTE]
+> Requesting Gmail + Calendar scopes at login time means the user **never needs to manually configure Google integration** — it's automatic. Slack and Jira still require manual token input (P0), with proper OAuth flows deferred to P2.
+
+---
+
+## API Routes Design
+
+### Authentication
+
+| Method | Route | Auth? | Description |
+|---|---|---|---|
+| `GET` | `/auth/google` | No | Initiates Google OAuth flow → redirects to Google |
+| `GET` | `/auth/google/callback` | No | Google redirects here with auth code → creates session |
+| `POST` | `/auth/logout` | Yes | Destroys session, clears cookie |
+| `GET` | `/auth/me` | Yes | Returns current user profile + connected integrations |
+
+### Core API
+
+| Method | Route | Auth? | Description |
+|---|---|---|---|
+| `GET` | `/api/inbox` | Yes | Fetches items from all connected integrations. Returns `InboxItem[]` |
+| `POST` | `/api/analyze` | Yes | Sends inbox items to Gemini (or returns cached). Returns `AnalysisResult` |
+| `GET` | `/api/analyses` | Yes | List past analysis runs (history) |
+| `PATCH` | `/api/tasks/:id` | Yes | Update task status (complete/dismiss) |
+
+### Integration Management
+
+| Method | Route | Auth? | Description |
+|---|---|---|---|
+| `POST` | `/api/integrations/slack` | Yes | Save Slack bot token (encrypted) |
+| `POST` | `/api/integrations/jira` | Yes | Save Jira credentials (encrypted) |
+| `DELETE` | `/api/integrations/:provider` | Yes | Disconnect an integration |
+| `GET` | `/api/integrations` | Yes | List connected integrations (no tokens in response) |
+
+---
+
+## Frontend Changes (Minimal)
+
+Only these files change on the frontend:
+
+| File | Change |
+|---|---|
+| **`LoginScreen.tsx`** | Replace fake form → single "Sign in with Google" button that navigates to `GET /auth/google` |
+| **`PermissionScreen.tsx`** | Remove Google token input (auto-connected). Keep Slack + Jira manual token inputs. Wire "Save" to `POST /api/integrations/:provider` |
+| **`Dashboard.tsx`** | Replace direct API calls → call `GET /api/inbox` and `POST /api/analyze` via the backend |
+| **`services/api.ts`** | NEW: Centralized fetch wrapper that includes credentials (`fetch(url, { credentials: 'include' })`) |
+| **`services/geminiService.ts`** | DELETE — moved to server |
+| **`services/integrationService.ts`** | DELETE — moved to server |
+| **`vite.config.ts`** | Add proxy: `/api` → `http://localhost:3001`, `/auth` → `http://localhost:3001` |
+| **`App.tsx`** | Add auth state check on mount (`GET /auth/me`). If unauthenticated → show login. If authed → go to dashboard |
+
+---
+
+## Docker Compose (Dev Environment)
+
+```yaml
+# docker-compose.yml
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: focusflow
+      POSTGRES_USER: focusflow
+      POSTGRES_PASSWORD: focusflow_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./server/src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:
+```
+
+---
+
+## Environment Variables (.env.example)
+
+```bash
+# === Server ===
+PORT=3001
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000
+
+# === Google OAuth ===
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/callback
+
+# === Gemini AI ===
+GEMINI_API_KEY=your-gemini-api-key
+
+# === PostgreSQL ===
+DATABASE_URL=postgresql://focusflow:focusflow_dev@localhost:5432/focusflow
+
+# === Redis ===
+REDIS_URL=redis://localhost:6379
+
+# === Session ===
+SESSION_SECRET=a-random-64-char-secret-change-in-production
+
+# === Encryption (for storing OAuth tokens) ===
+ENCRYPTION_KEY=a-random-32-byte-hex-string
+```
+
+---
+
+## Execution Order
+
+### Phase 1: Infrastructure (P0 Foundation)
+1. Create `docker-compose.yml` + `.env.example`
+2. Scaffold `server/` with Express + TypeScript
+3. Set up PostgreSQL connection + schema + migration runner
+4. Set up Redis connection
+5. Implement `crypto.service.ts` (AES-256-GCM)
+6. Implement Google OAuth flow (routes + controller + service)
+7. Implement session middleware + `requireAuth`
+
+### Phase 2: Core Backend (P0 continued)
+8. Implement Gmail service (server-side)
+9. Implement Calendar service (server-side)
+10. Implement Slack service (server-side proxy)
+11. Implement Jira service (server-side proxy)
+12. Implement inbox aggregation route
+13. Implement Gemini service (server-side, with Zod validation)
+14. Implement analysis + task routes
+15. Implement integration management routes
+
+### Phase 3: Frontend Rewire
+16. Create `services/api.ts` (fetch wrapper)
+17. Replace LoginScreen with Google Sign-In
+18. Update PermissionScreen (remove Google, keep Slack/Jira)
+19. Update Dashboard to call backend
+20. Update App.tsx with auth state management
+21. Update vite.config.ts with proxy
+
+### Phase 4: P1 Hardening
+22. Add Redis caching for AI responses
+23. Add prompt injection sanitizer
+24. Add React Error Boundaries
+25. Add mobile responsive breakpoints
+26. Add rate limiting middleware
+
+### Phase 5: Docs & Dev Setup
+27. Write MIGRATION.md
+28. Update README.md
+29. Add P2 TODO stubs throughout codebase
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> Please answer these before I start writing code:
+
+### Q1: Database access — Raw `pg` or Drizzle ORM?
+I'm proposing **raw `pg`** with handwritten SQL in typed query functions. This is simpler and gives you full control. But if you prefer **Drizzle ORM** (type-safe query builder, auto migrations), I can use that instead. Which do you prefer?
+
+### Q2: Do you have a Google Cloud project with OAuth credentials?
+I need to know if you already have a **Google Cloud Console project** with:
+- OAuth 2.0 Client ID (Web application type)
+- Authorized redirect URI set to `http://localhost:3001/auth/google/callback`
+
+If not, I'll include setup instructions in the README.
+
+### Q3: TypeScript on the backend too?
+Your frontend is TypeScript. I'm assuming you want the **backend in TypeScript as well** (with `tsx` for dev, `tsc` for build). Confirm?
+
+### Q4: Passport.js or manual OAuth?
+You mentioned Passport.js. I actually recommend **manual OAuth** (just `google-auth-library` + direct HTTP calls) for this project because:
+- Passport adds middleware abstraction that obscures what's happening
+- We only have one provider (Google) for now
+- Manual is ~50 lines of code and fully transparent
+
+If you prefer Passport.js for familiarity or future multi-provider support, I'll use it. Your call?
+
+### Q5: Frontend restructure — move into `src/`?
+Currently your React files (App.tsx, index.tsx, components/, services/) sit at the **project root**. This is unusual and will conflict with having `server/` alongside them. I recommend moving all frontend source into a `src/` directory:
+
+```
+Before:                    After:
+├── App.tsx               ├── src/
+├── index.tsx             │   ├── App.tsx
+├── components/           │   ├── index.tsx
+├── services/             │   ├── components/
+├── types.ts              │   ├── services/
+├── constants.ts          │   ├── types.ts
+├── server/               │   └── constants.ts
+                          ├── server/
+```
+
+This is a clean separation. OK to do this, or do you want to keep the flat structure?
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- Run `docker-compose up -d` → verify Postgres + Redis are healthy
+- Run `npm run dev` (both frontend + backend via concurrently)
+- Test Google OAuth login flow end-to-end in the browser
+- Test inbox fetch with real Google credentials
+- Test Slack/Jira integration save + proxy fetch
+- Test AI analysis with caching (first call hits Gemini, second returns cached)
+- Verify session persistence across page refreshes
+- Verify logout destroys session
+
+### Manual Verification
+- Check browser DevTools → confirm no API keys or tokens in network requests
+- Check cookies → confirm `httpOnly`, `Secure`, `SameSite` flags
+- Check PostgreSQL → confirm tokens are encrypted (not plaintext)
+- Test on mobile viewport → confirm responsive layout

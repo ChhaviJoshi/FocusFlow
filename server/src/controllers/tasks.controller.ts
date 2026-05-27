@@ -1,5 +1,9 @@
-import type { Request, Response } from 'express';
-import { updateTaskStatus, listTasks } from '../db/queries/tasks.queries.js';
+import type { Request, Response } from "express";
+import {
+  updateTaskStatus,
+  updateTaskStatusByOriginalItemId,
+  listTasks,
+} from "../db/queries/tasks.queries.js";
 
 /**
  * Update a task's status (complete or dismiss).
@@ -9,15 +13,49 @@ export async function patchTask(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
   const { status } = req.body;
 
-  if (!status || !['completed', 'dismissed'].includes(status)) {
-    res.status(400).json({ error: 'Status must be "completed" or "dismissed"' });
+  if (!status || !["completed", "dismissed"].includes(status)) {
+    res
+      .status(400)
+      .json({ error: 'Status must be "completed" or "dismissed"' });
     return;
   }
 
   const task = await updateTaskStatus(id, userId, status);
 
   if (!task) {
-    res.status(404).json({ error: 'Task not found' });
+    res.status(404).json({ error: "Task not found" });
+    return;
+  }
+
+  res.json({ task });
+}
+
+/**
+ * Update task status using the original inbox item ID.
+ */
+export async function patchTaskByOriginalItemId(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const userId = (req as any).user.id;
+  const { originalItemId } = req.params;
+  const { status } = req.body;
+
+  if (!status || !["completed", "dismissed"].includes(status)) {
+    res
+      .status(400)
+      .json({ error: 'Status must be "completed" or "dismissed"' });
+    return;
+  }
+
+  const task = await updateTaskStatusByOriginalItemId(
+    originalItemId,
+    userId,
+    status,
+  );
+
+  if (!task) {
+    res.status(404).json({ error: "Task not found for this inbox item" });
     return;
   }
 

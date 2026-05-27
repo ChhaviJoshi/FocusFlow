@@ -1,6 +1,6 @@
-import type { InboxItem } from '../types/index.js';
-import { SourceType } from '../types/index.js';
-import { getIntegrationDecrypted } from '../db/queries/integrations.queries.js';
+import type { InboxItem } from "../types/index.js";
+import { SourceType } from "../types/index.js";
+import { getIntegrationDecrypted } from "../db/queries/integrations.queries.js";
 
 /**
  * Slack service — fetches messages server-side.
@@ -12,7 +12,7 @@ import { getIntegrationDecrypted } from '../db/queries/integrations.queries.js';
  */
 
 export async function fetchSlackItems(userId: string): Promise<InboxItem[]> {
-  const integration = await getIntegrationDecrypted(userId, 'slack');
+  const integration = await getIntegrationDecrypted(userId, "slack");
   if (!integration) return [];
 
   const token = integration.decryptedAccessToken;
@@ -20,13 +20,13 @@ export async function fetchSlackItems(userId: string): Promise<InboxItem[]> {
   try {
     // Step 1: Get list of channels the bot is in
     const channelsRes = await fetch(
-      'https://slack.com/api/conversations.list?types=public_channel,private_channel&limit=5',
-      { headers: { Authorization: `Bearer ${token}` } }
+      "https://slack.com/api/conversations.list?types=public_channel,private_channel&limit=5",
+      { headers: { Authorization: `Bearer ${token}` } },
     );
 
     const channelsData: any = await channelsRes.json();
     if (!channelsData.ok) {
-      console.warn('[Slack] conversations.list failed:', channelsData.error);
+      console.warn("[Slack] conversations.list failed:", channelsData.error);
       return [];
     }
 
@@ -39,7 +39,7 @@ export async function fetchSlackItems(userId: string): Promise<InboxItem[]> {
     for (const channel of channels.slice(0, 3)) {
       const historyRes = await fetch(
         `https://slack.com/api/conversations.history?channel=${channel.id}&limit=5`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       const historyData: any = await historyRes.json();
@@ -50,21 +50,50 @@ export async function fetchSlackItems(userId: string): Promise<InboxItem[]> {
         // Skip bot messages and system messages
         if (msg.subtype) continue;
 
+        const permalink = await fetchSlackPermalink(token, channel.id, msg.ts);
+
         allItems.push({
           id: `slack-${msg.ts}`,
           source: SourceType.SLACK,
-          sender: msg.user || 'Slack User',
+          sender: msg.user || "Slack User",
           subject: `#${channel.name}`,
-          content: msg.text || '',
+          content: msg.text || "",
           timestamp: new Date(parseFloat(msg.ts) * 1000).toISOString(),
           read: false,
+          nativeUrl: permalink,
         });
       }
     }
 
     return allItems;
   } catch (err) {
-    console.error('[Slack] Fetch error:', err);
+    console.error("[Slack] Fetch error:", err);
     return [];
+  }
+}
+
+async function fetchSlackPermalink(
+  token: string,
+  channelId: string,
+  messageTs: string,
+): Promise<string | null> {
+  try {
+    const permalinkRes = await fetch(
+      `https://slack.com/api/chat.getPermalink?channel=${encodeURIComponent(channelId)}&message_ts=${encodeURIComponent(messageTs)}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+
+    if (!permalinkRes.ok) {
+      return null;
+    }
+
+    const permalinkData: any = await permalinkRes.json();
+    if (!permalinkData.ok || typeof permalinkData.permalink !== "string") {
+      return null;
+    }
+
+    return permalinkData.permalink;
+  } catch {
+    return null;
   }
 }

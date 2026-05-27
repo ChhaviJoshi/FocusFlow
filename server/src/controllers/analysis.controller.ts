@@ -1,78 +1,116 @@
-import type { Request, Response } from 'express';
-import { analyzePriorities } from '../services/gemini.service.js';
-import { getCachedAnalysis, setCachedAnalysis } from '../services/cache.service.js';
-import { saveAnalysis, listAnalyses } from '../db/queries/analyses.queries.js';
-import { createTasksFromAnalysis } from '../db/queries/tasks.queries.js';
-import type { InboxItem } from '../types/index.js';
+import type { Request, Response } from "express";
+import { analyzePriorities } from "../services/ai.service.js";
+import {
+  getCachedAnalysis,
+  getLatestCachedAnalysis,
+  setCachedAnalysis,
+} from "../services/cache.service.js";
+import { saveAnalysis, listAnalyses } from "../db/queries/analyses.queries.js";
+import {
+  createTasksFromAnalysis,
+  getDynamicProductivityScore,
+} from "../db/queries/tasks.queries.js";
+import type { InboxItem } from "../types/index.js";
 
 /**
- * Analyze inbox items with Gemini AI.
- * 1. Check Redis cache first (keyed by content hash)
- * 2. If cache miss, call Gemini → validate with Zod → cache the result
- * 3. Persist to PostgreSQL for history tracking
- * 4. Create task records for each priority item
+ * Analyze inbox items with AI provider.
  */
 export async function analyzeInbox(req: Request, res: Response): Promise<void> {
   const userId = (req as any).user.id;
   const { items } = req.body as { items: InboxItem[] };
 
   if (!items || !Array.isArray(items) || items.length === 0) {
-    res.status(400).json({ error: 'Request body must include a non-empty "items" array' });
+    res
+      .status(400)
+      .json({ error: 'Request body must include a non-empty "items" array' });
     return;
   }
 
-  // Step 1: Check cache
-  const cacheInput = items.map(i => ({ id: i.id, content: i.content }));
-  const cached = await getCachedAnalysis(userId, cacheInput);
+  const cacheInput = items.map((item) => ({
+    id: item.id,
+    content: item.content,
+  }));
 
+  const cached = await getCachedAnalysis(userId, cacheInput);
   if (cached) {
     const result = JSON.parse(cached);
+    result.productivityScore = await getDynamicProductivityScore(userId);
     res.json({ result, cached: true });
     return;
   }
 
-  // Step 2: Call Gemini (with sanitization + Zod validation inside the service)
-  const result = await analyzePriorities(items);
+  const latestCached = await getLatestCachedAnalysis(userId);
 
-  // Step 3: Cache the result
-  await setCachedAnalysis(userId, cacheInput, JSON.stringify(result));
+  try {
+    const result = await analyzePriorities(items);
 
-  // Step 4: Persist to DB for history
-  const savedAnalysis = await saveAnalysis(userId, items.length, result);
+    if (result.lowConfidence && latestCached) {
+      const latest = JSON.parse(latestCached);
+      latest.productivityScore = await getDynamicProductivityScore(userId);
+      res.json({ result: latest, cached: true });
+      return;
+    }
 
-  // Step 5: Create task records for each top priority
-  if (result.topPriorities.length > 0) {
-    await createTasksFromAnalysis(
-      userId,
-      savedAnalysis.id,
-      result.topPriorities.map(p => ({
-        originalItemId: p.originalItemId,
-        title: p.title,
-        urgencyScore: p.urgencyScore,
-        importanceScore: p.importanceScore,
-      }))
-    );
+    await setCachedAnalysis(userId, cacheInput, JSON.stringify(result));
+
+    const savedAnalysis = await saveAnalysis(userId, items.length, result);
+
+    if (result.topPriorities.length > 0) {
+      const sourceUrlByItemId = new Map(
+        items.map((item) => [item.id, item.nativeUrl ?? null]),
+      );
+
+      await createTasksFromAnalysis(
+        userId,
+        savedAnalysis.id,
+        result.topPriorities.map((priority) => ({
+          originalItemId: priority.originalItemId,
+          nativeUrl: sourceUrlByItemId.get(priority.originalItemId) ?? null,
+          title: priority.title,
+          urgencyScore: priority.urgencyScore,
+          importanceScore: priority.importanceScore,
+        })),
+      );
+    }
+
+    result.productivityScore = await getDynamicProductivityScore(userId);
+    res.json({ result, cached: false });
+  } catch (error) {
+    console.error("[Analysis] Provider call failed:", error);
+
+    if (latestCached) {
+      const latest = JSON.parse(latestCached);
+      latest.productivityScore = await getDynamicProductivityScore(userId);
+      res.json({ result: latest, cached: true });
+      return;
+    }
+
+    res.status(503).json({
+      error: "analysis_unavailable",
+      lastAnalysis: null,
+    });
   }
-
-  res.json({ result, cached: false });
 }
 
 /**
  * Get analysis history for the current user.
  */
-export async function getAnalysisHistory(req: Request, res: Response): Promise<void> {
+export async function getAnalysisHistory(
+  req: Request,
+  res: Response,
+): Promise<void> {
   const userId = (req as any).user.id;
   const limit = parseInt(req.query.limit as string) || 20;
 
   const analyses = await listAnalyses(userId, limit);
 
   res.json({
-    analyses: analyses.map(a => ({
-      id: a.id,
-      inboxItemCount: a.inbox_item_count,
-      productivityScore: a.productivity_score,
-      distribution: a.distribution,
-      createdAt: a.created_at,
+    analyses: analyses.map((analysis) => ({
+      id: analysis.id,
+      inboxItemCount: analysis.inbox_item_count,
+      productivityScore: analysis.productivity_score,
+      distribution: analysis.distribution,
+      createdAt: analysis.created_at,
     })),
   });
 }

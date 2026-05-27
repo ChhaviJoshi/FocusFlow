@@ -1,28 +1,27 @@
-import { Router } from 'express';
+import { Router } from "express";
 import {
-  saveSlackIntegration,
-  saveJiraIntegration,
   getIntegrations,
   removeIntegration,
-} from '../controllers/integrations.controller.js';
-import { requireAuth } from '../middleware/auth.js';
-import { asyncHandler } from '../middleware/errorHandler.js';
+  slackOAuthStart,
+  slackOAuthCallback,
+  jiraOAuthStart,
+  jiraOAuthCallback,
+} from "../controllers/integrations.controller.js";
+import { requireAuth } from "../middleware/auth.js";
+import { asyncHandler } from "../middleware/errorHandler.js";
 
 const router = Router();
 
 // List connected integrations (no tokens in response)
-router.get('/', requireAuth, asyncHandler(getIntegrations));
-
-// Save Slack token
-router.post('/slack', requireAuth, asyncHandler(saveSlackIntegration));
-
-// Save Jira credentials
-router.post('/jira', requireAuth, asyncHandler(saveJiraIntegration));
+router.get("/", requireAuth, asyncHandler(getIntegrations));
 
 // Disconnect an integration
-router.delete('/:provider', requireAuth, asyncHandler(removeIntegration));
+router.delete("/:provider", requireAuth, asyncHandler(removeIntegration));
 
-// TODO: POST /slack/oauth — Slack "Add to Workspace" OAuth flow (P2)
-// TODO: POST /jira/oauth — Jira OAuth flow (P2)
+// OAuth start/callback routes
+router.get("/slack/oauth/start", requireAuth, asyncHandler(slackOAuthStart));
+router.get("/slack/oauth/callback", asyncHandler(slackOAuthCallback));
+router.get("/jira/oauth/start", requireAuth, asyncHandler(jiraOAuthStart));
+router.get("/jira/oauth/callback", asyncHandler(jiraOAuthCallback));
 
 export default router;
