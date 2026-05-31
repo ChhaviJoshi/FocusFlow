@@ -64,7 +64,9 @@ const ProfilePage = () => {
   }, []);
 
   const integrationCards = useMemo(() => {
-    const providers = new Set(integrations.map((integration) => integration.provider));
+    const providers = new Set(
+      integrations.map((integration) => integration.provider),
+    );
     const isGoogleConnected = providers.has("google");
 
     return [
@@ -148,7 +150,9 @@ const ProfilePage = () => {
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
-            <div className="text-lg font-semibold tracking-tight">FocusFlow</div>
+            <div className="text-lg font-semibold tracking-tight">
+              FocusFlow
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <NotificationsMenu />
@@ -199,7 +203,9 @@ const ProfilePage = () => {
 
         {editing ? (
           <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Update Profile</h2>
+            <h2 className="text-lg font-semibold text-slate-900">
+              Update Profile
+            </h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div>
                 <label className="text-xs font-semibold uppercase text-slate-500">
@@ -229,6 +235,7 @@ const ProfilePage = () => {
                       ...prev,
                       email: event.target.value,
                     }))
+                  }
                   className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
                 />
               </div>
@@ -244,6 +251,7 @@ const ProfilePage = () => {
                       ...prev,
                       secondaryEmails: event.target.value,
                     }))
+                  }
                   className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
                 />
               </div>
@@ -259,6 +267,7 @@ const ProfilePage = () => {
                       ...prev,
                       slackHandle: event.target.value,
                     }))
+                  }
                   className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
                 />
               </div>
@@ -274,6 +283,7 @@ const ProfilePage = () => {
                       ...prev,
                       jiraHandle: event.target.value,
                     }))
+                  }
                   className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
                 />
               </div>

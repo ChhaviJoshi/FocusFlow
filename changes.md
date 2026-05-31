@@ -1,0 +1,11 @@
+-add proper logs
+-try redis connection 3 times only while starting app
+-check db linking, nothing's getting stored in db
+-the slack and jira connect buttons in integrations are throwing error and there's no connect to calendar option
+-sidebar shut option
+-notification icon on main page
+-edit profile picture option, remove demo image 
+-in the user profile, make integration settings dynamic not just static , give connect option
+-on the sign in page the eye icon to make the password visible isn't working
+-make everything more interactive/ the background shade in profile section a little differentiating from the integration cards of gmail, calendar etc
+-move the view all integrations option into the side bar
